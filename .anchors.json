@@ -209,51 +209,51 @@
     "preview" : "<!-- @anchor: html_smart_detect -->"
   }, {
     "id" : "html_smart_detect_end",
-    "line" : 77,
+    "line" : 78,
     "preview" : "<!-- @anchor: html_smart_detect_end -->"
   }, {
     "id" : "html_text_input_end",
-    "line" : 79,
+    "line" : 80,
     "preview" : "<!-- @anchor: html_text_input_end -->"
   }, {
     "id" : "html_braille_input",
-    "line" : 81,
+    "line" : 82,
     "preview" : "<!-- @anchor: html_braille_input -->"
   }, {
     "id" : "html_braille_input_end",
-    "line" : 124,
+    "line" : 125,
     "preview" : "<!-- @anchor: html_braille_input_end -->"
   }, {
     "id" : "html_a1z26_input",
-    "line" : 126,
+    "line" : 127,
     "preview" : "<!-- @anchor: html_a1z26_input -->"
   }, {
     "id" : "html_a1z26_input_end",
-    "line" : 169,
+    "line" : 170,
     "preview" : "<!-- @anchor: html_a1z26_input_end -->"
   }, {
     "id" : "html_semaphore_input",
-    "line" : 171,
+    "line" : 172,
     "preview" : "<!-- @anchor: html_semaphore_input -->"
   }, {
     "id" : "html_semaphore_input_end",
-    "line" : 233,
+    "line" : 234,
     "preview" : "<!-- @anchor: html_semaphore_input_end -->"
   }, {
     "id" : "html_cipher_cards",
-    "line" : 235,
+    "line" : 236,
     "preview" : "<!-- @anchor: html_cipher_cards -->"
   }, {
     "id" : "html_cipher_cards_end",
-    "line" : 310,
+    "line" : 311,
     "preview" : "<!-- @anchor: html_cipher_cards_end -->"
   }, {
     "id" : "html_scripts",
-    "line" : 318,
+    "line" : 319,
     "preview" : "<!-- @anchor: html_scripts -->"
   }, {
     "id" : "html_scripts_end",
-    "line" : 330,
+    "line" : 331,
     "preview" : "<!-- @anchor: html_scripts_end -->"
   } ],
   "modules/a1z26.js" : [ {
@@ -597,31 +597,31 @@
     "preview" : "<!-- @anchor: proj_decisions -->"
   }, {
     "id" : "proj_decisions_end",
-    "line" : 43,
+    "line" : 45,
     "preview" : "<!-- @anchor: proj_decisions_end -->"
   }, {
     "id" : "proj_conventions",
-    "line" : 45,
+    "line" : 47,
     "preview" : "<!-- @anchor: proj_conventions -->"
   }, {
     "id" : "proj_conventions_end",
-    "line" : 56,
+    "line" : 58,
     "preview" : "<!-- @anchor: proj_conventions_end -->"
   }, {
     "id" : "proj_limits",
-    "line" : 58,
+    "line" : 60,
     "preview" : "<!-- @anchor: proj_limits -->"
   }, {
     "id" : "proj_limits_end",
-    "line" : 69,
+    "line" : 73,
     "preview" : "<!-- @anchor: proj_limits_end -->"
   }, {
     "id" : "proj_start",
-    "line" : 71,
+    "line" : 75,
     "preview" : "<!-- @anchor: proj_start -->"
   }, {
     "id" : "proj_start_end",
-    "line" : 74,
+    "line" : 78,
     "preview" : "<!-- @anchor: proj_start_end -->"
   } ],
   "script.js" : [ {
@@ -887,53 +887,16 @@
     "line" : 28,
     "preview" : "<!-- @anchor: log_003_end -->"
   }, {
-    "id" : "update_record_anchor",
+    "id" : "log_004",
     "line" : 31,
+    "preview" : "<!-- @anchor: log_004 -->"
+  }, {
+    "id" : "log_004_end",
+    "line" : 38,
+    "preview" : "<!-- @anchor: log_004_end -->"
+  }, {
+    "id" : "update_record_anchor",
+    "line" : 41,
     "preview" : "<!-- @anchor: update_record_anchor -->"
-  } ],
-  "TODO.md" : [ {
-    "id" : "todo_intro",
-    "line" : 1,
-    "preview" : "<!-- @anchor: todo_intro -->"
-  }, {
-    "id" : "todo_step1",
-    "line" : 5,
-    "preview" : "<!-- @anchor: todo_step1 -->"
-  }, {
-    "id" : "todo_step1_end",
-    "line" : 8,
-    "preview" : "<!-- @anchor: todo_step1_end -->"
-  }, {
-    "id" : "todo_step2",
-    "line" : 10,
-    "preview" : "<!-- @anchor: todo_step2 -->"
-  }, {
-    "id" : "todo_step2_end",
-    "line" : 14,
-    "preview" : "<!-- @anchor: todo_step2_end -->"
-  }, {
-    "id" : "todo_step3",
-    "line" : 16,
-    "preview" : "<!-- @anchor: todo_step3 -->"
-  }, {
-    "id" : "todo_step3_end",
-    "line" : 19,
-    "preview" : "<!-- @anchor: todo_step3_end -->"
-  }, {
-    "id" : "todo_step4",
-    "line" : 21,
-    "preview" : "<!-- @anchor: todo_step4 -->"
-  }, {
-    "id" : "todo_step4_end",
-    "line" : 25,
-    "preview" : "<!-- @anchor: todo_step4_end -->"
-  }, {
-    "id" : "todo_end",
-    "line" : 27,
-    "preview" : "<!-- @anchor: todo_end -->"
-  }, {
-    "id" : "todo_end_end",
-    "line" : 29,
-    "preview" : "<!-- @anchor: todo_end_end -->"
   } ]
 }

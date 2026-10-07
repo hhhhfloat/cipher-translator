@@ -230,54 +230,54 @@
   }, {
     "id" : "html_smart_detect",
     "line" : 68,
-    "desc" : "半智能识别区：数字型输入自动识别编码，结果多于一项时以下拉框切换栏目"
+    "desc" : "半智能识别区：按输入形态（数字 / 摩斯点划 / 五位二进制 / 三进制等）自动识别编码，结果多于一项时以下拉框切换栏目"
   }, {
     "id" : "html_smart_detect_end",
-    "line" : 77,
+    "line" : 78,
     "desc" : ""
   }, {
     "id" : "html_text_input_end",
-    "line" : 79,
+    "line" : 80,
     "desc" : ""
   }, {
     "id" : "html_braille_input",
-    "line" : 81,
+    "line" : 82,
     "desc" : "盲文点阵输入区域：点击 2×3 点阵自动解码为字母并追加到文本框"
   }, {
     "id" : "html_braille_input_end",
-    "line" : 124,
+    "line" : 125,
     "desc" : ""
   }, {
     "id" : "html_a1z26_input",
-    "line" : 126,
+    "line" : 127,
     "desc" : "A1Z26 数字解码输入区域：输入空格/连字符分隔的数字，解码为字母"
   }, {
     "id" : "html_a1z26_input_end",
-    "line" : 169,
+    "line" : 170,
     "desc" : ""
   }, {
     "id" : "html_semaphore_input",
-    "line" : 171,
+    "line" : 172,
     "desc" : "旗语九宫格输入区域：依次点击两个方向格（忽略顺序）解码为字母"
   }, {
     "id" : "html_semaphore_input_end",
-    "line" : 233,
+    "line" : 234,
     "desc" : ""
   }, {
     "id" : "html_cipher_cards",
-    "line" : 235,
+    "line" : 236,
     "desc" : "密码面板网格：盲文 / A1Z26 / 敲击码 / 旗语 / 北约音标 五张输出卡片"
   }, {
     "id" : "html_cipher_cards_end",
-    "line" : 310,
+    "line" : 311,
     "desc" : ""
   }, {
     "id" : "html_scripts",
-    "line" : 318,
+    "line" : 319,
     "desc" : ""
   }, {
     "id" : "html_scripts_end",
-    "line" : 330,
+    "line" : 331,
     "desc" : ""
   } ],
   "modules/a1z26.js" : [ {
@@ -690,31 +690,31 @@
     "desc" : "# 关键决策"
   }, {
     "id" : "proj_decisions_end",
-    "line" : 43,
+    "line" : 45,
     "desc" : ""
   }, {
     "id" : "proj_conventions",
-    "line" : 45,
+    "line" : 47,
     "desc" : "# 规范约定"
   }, {
     "id" : "proj_conventions_end",
-    "line" : 56,
+    "line" : 58,
     "desc" : ""
   }, {
     "id" : "proj_limits",
-    "line" : 58,
+    "line" : 60,
     "desc" : "# 已知限制与坑"
   }, {
     "id" : "proj_limits_end",
-    "line" : 69,
+    "line" : 73,
     "desc" : ""
   }, {
     "id" : "proj_start",
-    "line" : 71,
+    "line" : 75,
     "desc" : "# 启动方式"
   }, {
     "id" : "proj_start_end",
-    "line" : 74,
+    "line" : 78,
     "desc" : ""
   } ],
   "script.js" : [ {
@@ -1034,53 +1034,16 @@
     "line" : 28,
     "desc" : ""
   }, {
-    "id" : "update_record_anchor",
+    "id" : "log_004",
     "line" : 31,
+    "desc" : "[本次] 识别扩展（摩斯 / 五位二进制 / 三进制）与敲击码预览精简"
+  }, {
+    "id" : "log_004_end",
+    "line" : 38,
+    "desc" : ""
+  }, {
+    "id" : "update_record_anchor",
+    "line" : 41,
     "desc" : "追加区：后续新记录统一插入本锚点之前"
-  } ],
-  "TODO.md" : [ {
-    "id" : "todo_intro",
-    "line" : 1,
-    "desc" : "cipher-translator 本轮任务待办：文本输入半智能识别扩展 + 敲击码预览精简"
-  }, {
-    "id" : "todo_step1",
-    "line" : 5,
-    "desc" : "# 步骤 1：扩展半智能识别规则模块"
-  }, {
-    "id" : "todo_step1_end",
-    "line" : 8,
-    "desc" : ""
-  }, {
-    "id" : "todo_step2",
-    "line" : 10,
-    "desc" : "# 步骤 2：精简敲击码输出"
-  }, {
-    "id" : "todo_step2_end",
-    "line" : 14,
-    "desc" : ""
-  }, {
-    "id" : "todo_step3",
-    "line" : 16,
-    "desc" : "# 步骤 3：主页文案与接入"
-  }, {
-    "id" : "todo_step3_end",
-    "line" : 19,
-    "desc" : ""
-  }, {
-    "id" : "todo_step4",
-    "line" : 21,
-    "desc" : "# 步骤 4：自测与文档"
-  }, {
-    "id" : "todo_step4_end",
-    "line" : 25,
-    "desc" : ""
-  }, {
-    "id" : "todo_end",
-    "line" : 27,
-    "desc" : "全部完成后删除本文件"
-  }, {
-    "id" : "todo_end_end",
-    "line" : 29,
-    "desc" : ""
   } ]
 }
