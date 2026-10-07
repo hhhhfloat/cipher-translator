@@ -1,0 +1,1086 @@
+{
+  "caesar.css" : [ {
+    "id" : "caesar_style_intro",
+    "line" : 1,
+    "desc" : "凯撒移位页面样式：变量与重置、头部、输入区、ROT 结果表格与响应式适配",
+    "symbol" : ":root"
+  }, {
+    "id" : "caesar_css_reset",
+    "line" : 7,
+    "desc" : "基础重置与主题变量",
+    "symbol" : ":root"
+  }, {
+    "id" : "caesar_css_reset_end",
+    "line" : 46,
+    "desc" : "",
+    "symbol" : ".site-header"
+  }, {
+    "id" : "caesar_css_header",
+    "line" : 48,
+    "desc" : "头部：返回链接、标题与副标题",
+    "symbol" : ".site-header"
+  }, {
+    "id" : "caesar_css_header_end",
+    "line" : 97,
+    "desc" : "",
+    "symbol" : ".main-content"
+  }, {
+    "id" : "caesar_css_layout",
+    "line" : 99,
+    "desc" : "主体容器",
+    "symbol" : ".main-content"
+  }, {
+    "id" : "caesar_css_layout_end",
+    "line" : 107,
+    "desc" : "",
+    "symbol" : ".input-section"
+  }, {
+    "id" : "caesar_css_input",
+    "line" : 109,
+    "desc" : "输入区域与字符计数",
+    "symbol" : ".input-section"
+  }, {
+    "id" : "caesar_css_input_end",
+    "line" : 204,
+    "desc" : "",
+    "symbol" : ".placeholder"
+  }, {
+    "id" : "caesar_css_results",
+    "line" : 206,
+    "desc" : "占位提示与 ROT1~ROT25 结果表格（ROT3 / ROT13 特殊高亮）",
+    "symbol" : ".placeholder"
+  }, {
+    "id" : "caesar_css_results_end",
+    "line" : 318,
+    "desc" : "",
+    "symbol" : ".site-footer"
+  }, {
+    "id" : "caesar_css_footer",
+    "line" : 320,
+    "desc" : "页脚",
+    "symbol" : ".site-footer"
+  }, {
+    "id" : "caesar_css_footer_end",
+    "line" : 340,
+    "desc" : "",
+    "symbol" : ".main-content"
+  }, {
+    "id" : "caesar_css_responsive",
+    "line" : 342,
+    "desc" : "响应式：窄屏缩小字号、返回链接回到文档流、表格内边距收窄",
+    "symbol" : ".main-content"
+  }, {
+    "id" : "caesar_css_responsive_end",
+    "line" : 378,
+    "desc" : ""
+  } ],
+  "caesar.html" : [ {
+    "id" : "caesar_md_intro",
+    "line" : 1,
+    "desc" : "凯撒移位页面结构骨架：输入框 + ROT1~ROT25 结果表格，与主页同目录，返回 index.html"
+  }, {
+    "id" : "caesar_header",
+    "line" : 12,
+    "desc" : "头部：返回主页链接、标题与说明"
+  }, {
+    "id" : "caesar_header_end",
+    "line" : 20,
+    "desc" : ""
+  }, {
+    "id" : "caesar_input",
+    "line" : 23,
+    "desc" : "输入区域：60 字符上限的英文文本输入与清空按钮"
+  }, {
+    "id" : "caesar_input_end",
+    "line" : 42,
+    "desc" : ""
+  }, {
+    "id" : "caesar_results",
+    "line" : 44,
+    "desc" : "移位结果区：占位提示与 ROT1~ROT25 结果表格"
+  }, {
+    "id" : "caesar_results_end",
+    "line" : 61,
+    "desc" : ""
+  }, {
+    "id" : "caesar_scripts",
+    "line" : 68,
+    "desc" : "脚本加载：凯撒移位主体逻辑"
+  }, {
+    "id" : "caesar_scripts_end",
+    "line" : 71,
+    "desc" : ""
+  } ],
+  "caesar.js" : [ {
+    "id" : "caesar_script_intro",
+    "line" : 1,
+    "desc" : "凯撒移位页面脚本：输入文本后自动渲染 ROT1~ROT25 全部移位结果表格",
+    "symbol" : "shiftChar"
+  }, {
+    "id" : "caesar_dom_refs",
+    "line" : 10,
+    "desc" : "缓存输入控件与结果表格 DOM 引用",
+    "symbol" : "shiftChar"
+  }, {
+    "id" : "caesar_dom_refs_end",
+    "line" : 18,
+    "desc" : "",
+    "symbol" : "shiftChar"
+  }, {
+    "id" : "caesar_shift_char",
+    "line" : 20,
+    "desc" : "对单个字母做凯撒移位，非字母原样返回",
+    "symbol" : "shiftChar"
+  }, {
+    "id" : "caesar_shift_char_end",
+    "line" : 40,
+    "desc" : "",
+    "symbol" : "shiftText"
+  }, {
+    "id" : "caesar_shift_text",
+    "line" : 42,
+    "desc" : "对整个文本逐字符做凯撒移位",
+    "symbol" : "shiftText"
+  }, {
+    "id" : "caesar_shift_text_end",
+    "line" : 57,
+    "desc" : "",
+    "symbol" : "renderResults"
+  }, {
+    "id" : "caesar_render",
+    "line" : 59,
+    "desc" : "渲染全部 25 种移位结果；空输入时显示占位提示",
+    "symbol" : "renderResults"
+  }, {
+    "id" : "caesar_render_end",
+    "line" : 123,
+    "desc" : "",
+    "symbol" : "onInputChange"
+  }, {
+    "id" : "caesar_input_handler",
+    "line" : 125,
+    "desc" : "输入处理：更新字符计数（含 60 上限）并刷新结果；清空复位",
+    "symbol" : "onInputChange"
+  }, {
+    "id" : "caesar_input_handler_end",
+    "line" : 146,
+    "desc" : ""
+  }, {
+    "id" : "caesar_event_bindings",
+    "line" : 148,
+    "desc" : "绑定输入与清空事件"
+  }, {
+    "id" : "caesar_event_bindings_end",
+    "line" : 152,
+    "desc" : ""
+  }, {
+    "id" : "caesar_init",
+    "line" : 154,
+    "desc" : "初始化并延迟载入示例 \"HELLO\""
+  }, {
+    "id" : "caesar_init_end",
+    "line" : 166,
+    "desc" : ""
+  } ],
+  "cipher-data.js" : [ {
+    "id" : "cipher_data_intro",
+    "line" : 1,
+    "desc" : "密码映射数据源：集中管理盲文点阵与旗语方向对，供各密码模块引用，改数据不改逻辑"
+  }, {
+    "id" : "data_root",
+    "line" : 22,
+    "desc" : "CipherData 根对象：聚合盲文与旗语两类映射"
+  }, {
+    "id" : "data_braille",
+    "line" : 26,
+    "desc" : "盲文字母 → 点阵映射（标准 6 点盲文）"
+  }, {
+    "id" : "data_braille_end",
+    "line" : 39,
+    "desc" : ""
+  }, {
+    "id" : "data_semaphore",
+    "line" : 41,
+    "desc" : "旗语字母 → [右手方向索引, 左手方向索引]（信号员自身视角，原形态，未经镜像翻转）"
+  }, {
+    "id" : "data_semaphore_end",
+    "line" : 59,
+    "desc" : ""
+  }, {
+    "id" : "data_root_end",
+    "line" : 61,
+    "desc" : ""
+  } ],
+  "index.html" : [ {
+    "id" : "index_intro",
+    "line" : 1,
+    "desc" : "古典密码互译器结构骨架：头部导航 + 四种输入模式区（文本 / 盲文 / A1Z26 / 旗语）+ 五张密码输出卡片，脚本按序加载"
+  }, {
+    "id" : "html_mode_selector",
+    "line" : 24,
+    "desc" : "输入模式选择器：文本 / 盲文 / A1Z26 / 旗语 四种输入切换"
+  }, {
+    "id" : "html_mode_selector_end",
+    "line" : 46,
+    "desc" : ""
+  }, {
+    "id" : "html_text_input",
+    "line" : 48,
+    "desc" : ""
+  }, {
+    "id" : "html_smart_detect",
+    "line" : 68,
+    "desc" : "半智能识别区：数字型输入自动识别编码，结果多于一项时以下拉框切换栏目"
+  }, {
+    "id" : "html_smart_detect_end",
+    "line" : 77,
+    "desc" : ""
+  }, {
+    "id" : "html_text_input_end",
+    "line" : 79,
+    "desc" : ""
+  }, {
+    "id" : "html_braille_input",
+    "line" : 81,
+    "desc" : "盲文点阵输入区域：点击 2×3 点阵自动解码为字母并追加到文本框"
+  }, {
+    "id" : "html_braille_input_end",
+    "line" : 124,
+    "desc" : ""
+  }, {
+    "id" : "html_a1z26_input",
+    "line" : 126,
+    "desc" : "A1Z26 数字解码输入区域：输入空格/连字符分隔的数字，解码为字母"
+  }, {
+    "id" : "html_a1z26_input_end",
+    "line" : 169,
+    "desc" : ""
+  }, {
+    "id" : "html_semaphore_input",
+    "line" : 171,
+    "desc" : "旗语九宫格输入区域：依次点击两个方向格（忽略顺序）解码为字母"
+  }, {
+    "id" : "html_semaphore_input_end",
+    "line" : 233,
+    "desc" : ""
+  }, {
+    "id" : "html_cipher_cards",
+    "line" : 235,
+    "desc" : "密码面板网格：盲文 / A1Z26 / 敲击码 / 旗语 / 北约音标 五张输出卡片"
+  }, {
+    "id" : "html_cipher_cards_end",
+    "line" : 310,
+    "desc" : ""
+  }, {
+    "id" : "html_scripts",
+    "line" : 318,
+    "desc" : ""
+  }, {
+    "id" : "html_scripts_end",
+    "line" : 330,
+    "desc" : ""
+  } ],
+  "modules/a1z26.js" : [ {
+    "id" : "a1z26_intro",
+    "line" : 1,
+    "desc" : "A1Z26 模块：字母↔数字编码（A=1 … Z=26），并提供编码可视化卡片",
+    "symbol" : "encode"
+  }, {
+    "id" : "a1z26_encode",
+    "line" : 9,
+    "desc" : "编码：文本 → 数字串（用 \"-\" 分隔）",
+    "symbol" : "encode"
+  }, {
+    "id" : "a1z26_encode_end",
+    "line" : 25,
+    "desc" : "",
+    "symbol" : "decode"
+  }, {
+    "id" : "a1z26_decode",
+    "line" : 27,
+    "desc" : "解码：数字串 → 文本（按 \"-\" 或空格分割）",
+    "symbol" : "decode"
+  }, {
+    "id" : "a1z26_decode_end",
+    "line" : 44,
+    "desc" : "",
+    "symbol" : "render"
+  }, {
+    "id" : "a1z26_render",
+    "line" : 46,
+    "desc" : "在容器中渲染 A1Z26 可视化：编码行 + 字母/数字卡片行",
+    "symbol" : "render"
+  }, {
+    "id" : "a1z26_render_end",
+    "line" : 107,
+    "desc" : ""
+  } ],
+  "modules/braille.js" : [ {
+    "id" : "braille_intro",
+    "line" : 1,
+    "desc" : "盲文模块：英文↔6点盲文 Unicode 的编解码，以及点阵可视化渲染（映射来自 CipherData.braille）",
+    "symbol" : "encode"
+  }, {
+    "id" : "braille_reverse_map",
+    "line" : 10,
+    "desc" : "预计算 braille Unicode 码点 → 字母 的反向映射",
+    "symbol" : "encode"
+  }, {
+    "id" : "braille_reverse_map_end",
+    "line" : 23,
+    "desc" : "",
+    "symbol" : "encode"
+  }, {
+    "id" : "braille_encode",
+    "line" : 25,
+    "desc" : "将文本编码为盲文Unicode字符串",
+    "symbol" : "encode"
+  }, {
+    "id" : "braille_encode_end",
+    "line" : 48,
+    "desc" : "",
+    "symbol" : "decode"
+  }, {
+    "id" : "braille_decode",
+    "line" : 50,
+    "desc" : "将盲文Unicode字符串解码为英文",
+    "symbol" : "decode"
+  }, {
+    "id" : "braille_decode_end",
+    "line" : 65,
+    "desc" : "",
+    "symbol" : "getDots"
+  }, {
+    "id" : "braille_getDots",
+    "line" : 67,
+    "desc" : "获取字母的点阵数组",
+    "symbol" : "getDots"
+  }, {
+    "id" : "braille_getDots_end",
+    "line" : 72,
+    "desc" : "",
+    "symbol" : "render"
+  }, {
+    "id" : "braille_render",
+    "line" : 74,
+    "desc" : "在容器中渲染盲文可视化：Unicode 行 + 3×2 点阵行",
+    "symbol" : "render"
+  }, {
+    "id" : "braille_render_end",
+    "line" : 148,
+    "desc" : ""
+  } ],
+  "modules/cantor.js" : [ {
+    "id" : "cantor_intro",
+    "line" : 1,
+    "desc" : "康托展开模块：1234 的 24 种排列从小到大对应字母 A–X，提供排列↔字母的双向映射",
+    "symbol" : "permToLetter"
+  }, {
+    "id" : "cantor_table",
+    "line" : 11,
+    "desc" : "生成 \"1234\" 的全排列并升序排序，建立 排列→字母 与 字母→排列 双向映射（A=0 … X=23）",
+    "symbol" : "permToLetter"
+  }, {
+    "id" : "cantor_table_end",
+    "line" : 31,
+    "desc" : "",
+    "symbol" : "permToLetter"
+  }, {
+    "id" : "cantor_convert",
+    "line" : 33,
+    "desc" : "排列 → 字母、字母 → 排列（无效输入分别返回 \"?\" 与空串）",
+    "symbol" : "permToLetter"
+  }, {
+    "id" : "cantor_convert_end",
+    "line" : 43,
+    "desc" : "",
+    "symbol" : "encode"
+  }, {
+    "id" : "cantor_encode",
+    "line" : 45,
+    "desc" : "编码：以空格分隔的排列串 → 字母串",
+    "symbol" : "encode"
+  }, {
+    "id" : "cantor_encode_end",
+    "line" : 51,
+    "desc" : "",
+    "symbol" : "decode"
+  }, {
+    "id" : "cantor_decode",
+    "line" : 53,
+    "desc" : "解码：字母串 → 以空格分隔的排列串",
+    "symbol" : "decode"
+  }, {
+    "id" : "cantor_decode_end",
+    "line" : 60,
+    "desc" : ""
+  } ],
+  "modules/nato-phonetic.js" : [ {
+    "id" : "nato_intro",
+    "line" : 1,
+    "desc" : "北约音标模块：A=Alfa、B=Bravo 的编码/解码，并渲染音标词卡片",
+    "symbol" : "encode"
+  }, {
+    "id" : "nato_map",
+    "line" : 8,
+    "desc" : "NATO 音标词表与反向映射（小写 key）",
+    "symbol" : "encode"
+  }, {
+    "id" : "nato_map_end",
+    "line" : 27,
+    "desc" : "",
+    "symbol" : "encode"
+  }, {
+    "id" : "nato_encode",
+    "line" : 29,
+    "desc" : "编码：文本 → NATO音标词",
+    "symbol" : "encode"
+  }, {
+    "id" : "nato_encode_end",
+    "line" : 44,
+    "desc" : "",
+    "symbol" : "decode"
+  }, {
+    "id" : "nato_decode",
+    "line" : 46,
+    "desc" : "解码：NATO音标词 → 文本",
+    "symbol" : "decode"
+  }, {
+    "id" : "nato_decode_end",
+    "line" : 63,
+    "desc" : "",
+    "symbol" : "render"
+  }, {
+    "id" : "nato_render",
+    "line" : 65,
+    "desc" : "在容器中渲染北约音标可视化：字母徽标 + 音标词卡片",
+    "symbol" : "render"
+  }, {
+    "id" : "nato_render_end",
+    "line" : 108,
+    "desc" : ""
+  } ],
+  "modules/semaphore.js" : [ {
+    "id" : "semaphore_intro",
+    "line" : 1,
+    "desc" : "旗语模块：8 方向双臂信号的编解码，并用 Canvas 绘制信号员人物（红蓝双臂持旗）",
+    "symbol" : "toMask"
+  }, {
+    "id" : "semaphore_dir_angles",
+    "line" : 14,
+    "desc" : "方向索引 → 弧度（0=上，顺时针）",
+    "symbol" : "toMask"
+  }, {
+    "id" : "semaphore_dir_angles_end",
+    "line" : 26,
+    "desc" : "",
+    "symbol" : "toMask"
+  }, {
+    "id" : "semaphore_bitmask",
+    "line" : 28,
+    "desc" : "将一对方向索引转为 8-bit 掩码（忽略双手顺序）",
+    "symbol" : "toMask"
+  }, {
+    "id" : "semaphore_bitmask_end",
+    "line" : 33,
+    "desc" : "",
+    "symbol" : "encode"
+  }, {
+    "id" : "semaphore_reverse_map",
+    "line" : 35,
+    "desc" : "8-bit 掩码 → 字母 的逆向映射（忽略双手顺序）",
+    "symbol" : "encode"
+  }, {
+    "id" : "semaphore_reverse_map_end",
+    "line" : 42,
+    "desc" : "",
+    "symbol" : "encode"
+  }, {
+    "id" : "semaphore_encode",
+    "line" : 44,
+    "desc" : "编码：返回方向描述（两方向按从小到大排序输出）",
+    "symbol" : "encode"
+  }, {
+    "id" : "semaphore_encode_end",
+    "line" : 62,
+    "desc" : "",
+    "symbol" : "decode"
+  }, {
+    "id" : "semaphore_decode",
+    "line" : 64,
+    "desc" : "解码：接受任意顺序的方向对，使用掩码查表",
+    "symbol" : "decode"
+  }, {
+    "id" : "semaphore_decode_end",
+    "line" : 94,
+    "desc" : "",
+    "symbol" : "drawFigure"
+  }, {
+    "id" : "semaphore_draw_figure",
+    "line" : 96,
+    "desc" : "在单个 Canvas 上绘制旗语人物：身体 + 头部 + 双臂持旗",
+    "symbol" : "drawFigure"
+  }, {
+    "id" : "semaphore_draw_figure_end",
+    "line" : 135,
+    "desc" : "",
+    "symbol" : "drawArm"
+  }, {
+    "id" : "semaphore_draw_arm",
+    "line" : 137,
+    "desc" : "绘制单条手臂与三角旗",
+    "symbol" : "drawArm"
+  }, {
+    "id" : "semaphore_draw_arm_end",
+    "line" : 171,
+    "desc" : "",
+    "symbol" : "render"
+  }, {
+    "id" : "semaphore_render",
+    "line" : 173,
+    "desc" : "在容器中渲染旗语可视化：每个字母一张 Canvas 人物图（最多 16 个）",
+    "symbol" : "render"
+  }, {
+    "id" : "semaphore_render_end",
+    "line" : 227,
+    "desc" : ""
+  } ],
+  "modules/smart-detect.js" : [ {
+    "id" : "smart_detect_intro",
+    "line" : 1,
+    "desc" : "半智能识别模块：分析文本输入，判定可能的编码（摩斯 / 五位二进制 / 三进制 / A1Z26 / 敲击码 / ASCII / 康托展开）并渲染可切换栏目",
+    "symbol" : "parseNumericTokens"
+  }, {
+    "id" : "smart_detect_parse",
+    "line" : 19,
+    "desc" : "解析输入：仅当为「数字 + 空白」模式时返回数字 token 数组，否则返回 null",
+    "symbol" : "parseNumericTokens"
+  }, {
+    "id" : "smart_detect_parse_end",
+    "line" : 28,
+    "desc" : "",
+    "symbol" : "parseMorseWords"
+  }, {
+    "id" : "smart_detect_morse",
+    "line" : 30,
+    "desc" : "摩斯表与解析：识别「点划 + 空格 + 单词分隔(/ 或 |)」输入，返回按单词分组的点划数组",
+    "symbol" : "parseMorseWords"
+  }, {
+    "id" : "smart_detect_morse_end",
+    "line" : 52,
+    "desc" : "",
+    "symbol" : "isPermOf1234"
+  }, {
+    "id" : "smart_detect_rules",
+    "line" : 55,
+    "desc" : "判定辅助：1234 排列、合法敲击码 token、5 位二进制 token、三进制 token",
+    "symbol" : "isPermOf1234"
+  }, {
+    "id" : "smart_detect_rules_end",
+    "line" : 81,
+    "desc" : "",
+    "symbol" : "buildChips"
+  }, {
+    "id" : "smart_detect_builders",
+    "line" : 83,
+    "desc" : "构造各编码的识别结果对象：标题、规则说明、结果串与逐 token 映射 chips",
+    "symbol" : "buildChips"
+  }, {
+    "id" : "smart_detect_builders_end",
+    "line" : 197,
+    "desc" : "",
+    "symbol" : "detect"
+  }, {
+    "id" : "smart_detect_detect",
+    "line" : 199,
+    "desc" : "核心判定：摩斯 / 康托展开 / 五位二进制独占；ASCII 与 A1Z26 互斥；敲击码与三进制为追加项",
+    "symbol" : "detect"
+  }, {
+    "id" : "smart_detect_detect_end",
+    "line" : 244,
+    "desc" : "",
+    "symbol" : "render"
+  }, {
+    "id" : "smart_detect_render",
+    "line" : 246,
+    "desc" : "渲染识别面板：多于一项时用下拉框切换，单项直接展示，无匹配显示占位提示",
+    "symbol" : "render"
+  }, {
+    "id" : "smart_detect_render_item",
+    "line" : 292,
+    "desc" : "渲染单个识别栏目：标题、规则说明、结果串与逐 token 映射 chips",
+    "symbol" : "renderItem"
+  }, {
+    "id" : "smart_detect_render_item_end",
+    "line" : 343,
+    "desc" : ""
+  }, {
+    "id" : "smart_detect_render_end",
+    "line" : 344,
+    "desc" : ""
+  } ],
+  "modules/tapcode.js" : [ {
+    "id" : "tapcode_intro",
+    "line" : 1,
+    "desc" : "敲击码模块：基于 5×5 Polybius 方格（I/J 合并）的数字对编解码与紧凑逐字符映射展示",
+    "symbol" : "encode"
+  }, {
+    "id" : "tapcode_grid",
+    "line" : 15,
+    "desc" : "Polybius 方格数据与 letter → [row,col] 映射（I/J 合并）",
+    "symbol" : "encode"
+  }, {
+    "id" : "tapcode_grid_end",
+    "line" : 39,
+    "desc" : "",
+    "symbol" : "encode"
+  }, {
+    "id" : "tapcode_encode",
+    "line" : 41,
+    "desc" : "编码：文本 → 数字对（如 \"23 15 31 31 34\"）",
+    "symbol" : "encode"
+  }, {
+    "id" : "tapcode_encode_end",
+    "line" : 57,
+    "desc" : "",
+    "symbol" : "decode"
+  }, {
+    "id" : "tapcode_decode",
+    "line" : 59,
+    "desc" : "解码：数字对 → 文本",
+    "symbol" : "decode"
+  }, {
+    "id" : "tapcode_decode_end",
+    "line" : 82,
+    "desc" : "",
+    "symbol" : "render"
+  }, {
+    "id" : "tapcode_render",
+    "line" : 84,
+    "desc" : "在容器中渲染敲击码：数字对结果行 + 紧凑的「字母 → 行,列」映射（不占据大面积方格）",
+    "symbol" : "render"
+  }, {
+    "id" : "tapcode_render_end",
+    "line" : 149,
+    "desc" : ""
+  } ],
+  "PROJECT.md" : [ {
+    "id" : "project_md_intro",
+    "line" : 1,
+    "desc" : "项目说明：定位、架构、关键决策、约定与限制"
+  }, {
+    "id" : "proj_overview",
+    "line" : 5,
+    "desc" : "# 项目定位"
+  }, {
+    "id" : "proj_overview_end",
+    "line" : 8,
+    "desc" : ""
+  }, {
+    "id" : "proj_arch",
+    "line" : 10,
+    "desc" : "# 整体架构"
+  }, {
+    "id" : "proj_arch_end",
+    "line" : 30,
+    "desc" : ""
+  }, {
+    "id" : "proj_decisions",
+    "line" : 32,
+    "desc" : "# 关键决策"
+  }, {
+    "id" : "proj_decisions_end",
+    "line" : 43,
+    "desc" : ""
+  }, {
+    "id" : "proj_conventions",
+    "line" : 45,
+    "desc" : "# 规范约定"
+  }, {
+    "id" : "proj_conventions_end",
+    "line" : 56,
+    "desc" : ""
+  }, {
+    "id" : "proj_limits",
+    "line" : 58,
+    "desc" : "# 已知限制与坑"
+  }, {
+    "id" : "proj_limits_end",
+    "line" : 69,
+    "desc" : ""
+  }, {
+    "id" : "proj_start",
+    "line" : 71,
+    "desc" : "# 启动方式"
+  }, {
+    "id" : "proj_start_end",
+    "line" : 74,
+    "desc" : ""
+  } ],
+  "script.js" : [ {
+    "id" : "script_intro",
+    "line" : 1,
+    "desc" : "主脚本：协调输入事件，将文本分发给五个密码模块渲染；并管理四种输入模式（文本 / 盲文 / A1Z26 / 旗语）的切换与解码",
+    "symbol" : "switchMode"
+  }, {
+    "id" : "script_dom_refs",
+    "line" : 11,
+    "desc" : "缓存页面 DOM 引用（输入控件、模式区、各密码输出容器、模块引用）",
+    "symbol" : "switchMode"
+  }, {
+    "id" : "script_dom_refs_end",
+    "line" : 72,
+    "desc" : "",
+    "symbol" : "switchMode"
+  }, {
+    "id" : "script_state",
+    "line" : 74,
+    "desc" : "运行时状态：当前输入模式、盲文点阵与累积文本、旗语双臂选择、A1Z26 累积文本",
+    "symbol" : "switchMode"
+  }, {
+    "id" : "script_state_end",
+    "line" : 90,
+    "desc" : "",
+    "symbol" : "switchMode"
+  }, {
+    "id" : "script_mode_switch",
+    "line" : 92,
+    "desc" : "切换输入模式：高亮按钮、切换输入区显示、重置对应输入状态",
+    "symbol" : "switchMode"
+  }, {
+    "id" : "script_mode_switch_end",
+    "line" : 139,
+    "desc" : "",
+    "symbol" : "updateBrailleOutputTextbox"
+  }, {
+    "id" : "script_output_textbox",
+    "line" : 141,
+    "desc" : "各输入模式「翻译结果」累积文本框的刷新与清空",
+    "symbol" : "updateBrailleOutputTextbox"
+  }, {
+    "id" : "script_output_textbox_end",
+    "line" : 175,
+    "desc" : "",
+    "symbol" : "computeA1Z26Result"
+  }, {
+    "id" : "script_a1z26_input",
+    "line" : 177,
+    "desc" : "A1Z26 数字输入：解码预览、添加到文本、清除与事件绑定",
+    "symbol" : "computeA1Z26Result"
+  }, {
+    "id" : "script_a1z26_input_end",
+    "line" : 284,
+    "desc" : "",
+    "symbol" : "computeBrailleFromDots"
+  }, {
+    "id" : "script_braille_input",
+    "line" : 286,
+    "desc" : "盲文点阵输入：点阵状态换算 Unicode 与字母、点选切换、添加到文本与事件绑定",
+    "symbol" : "computeBrailleFromDots"
+  }, {
+    "id" : "script_braille_input_end",
+    "line" : 394,
+    "desc" : "",
+    "symbol" : "computeSemaphoreLetter"
+  }, {
+    "id" : "script_semaphore_input",
+    "line" : 396,
+    "desc" : "旗语九宫格输入：按两次点击选择双臂方向、解码字母、添加到文本与事件绑定",
+    "symbol" : "computeSemaphoreLetter"
+  }, {
+    "id" : "script_semaphore_input_end",
+    "line" : 546,
+    "desc" : "",
+    "symbol" : "appendToTextInput"
+  }, {
+    "id" : "script_append_text",
+    "line" : 548,
+    "desc" : "通用文本追加：把单个字母写入文本框并派发 input 事件",
+    "symbol" : "appendToTextInput"
+  }, {
+    "id" : "script_append_text_end",
+    "line" : 560,
+    "desc" : "",
+    "symbol" : "updateAllCiphers"
+  }, {
+    "id" : "script_render_ciphers",
+    "line" : 562,
+    "desc" : "将文本分发给五个密码模块渲染到各自容器",
+    "symbol" : "updateAllCiphers"
+  }, {
+    "id" : "script_render_ciphers_end",
+    "line" : 583,
+    "desc" : "",
+    "symbol" : "updateSmartDetection"
+  }, {
+    "id" : "script_smart_detect",
+    "line" : 585,
+    "desc" : "半智能识别：把文本交给 SmartDetect，渲染数字型输入可识别的编码栏目",
+    "symbol" : "updateSmartDetection"
+  }, {
+    "id" : "script_smart_detect_end",
+    "line" : 592,
+    "desc" : "",
+    "symbol" : "onInputChange"
+  }, {
+    "id" : "script_input_events",
+    "line" : 595,
+    "desc" : "",
+    "symbol" : "onInputChange"
+  }, {
+    "id" : "script_input_events_end",
+    "line" : 623,
+    "desc" : ""
+  }, {
+    "id" : "script_init",
+    "line" : 625,
+    "desc" : ""
+  }, {
+    "id" : "script_init_end",
+    "line" : 645,
+    "desc" : ""
+  } ],
+  "style.css" : [ {
+    "id" : "style_intro",
+    "line" : 1,
+    "desc" : "古典密码互译器样式：变量与重置、输入模式区、四类专用输入区、五类密码输出卡片与响应式适配",
+    "symbol" : ":root"
+  }, {
+    "id" : "css_reset",
+    "line" : 7,
+    "desc" : "基础重置与主题变量",
+    "symbol" : ":root"
+  }, {
+    "id" : "css_reset_end",
+    "line" : 47,
+    "desc" : "",
+    "symbol" : ".site-header"
+  }, {
+    "id" : "css_header",
+    "line" : 49,
+    "desc" : "头部标题与凯撒移位导航链接",
+    "symbol" : ".site-header"
+  }, {
+    "id" : "css_header_end",
+    "line" : 100,
+    "desc" : "",
+    "symbol" : ".main-content"
+  }, {
+    "id" : "css_mode_selector",
+    "line" : 109,
+    "desc" : "输入模式选择器：分段控件样式的四个模式按钮",
+    "symbol" : ".mode-selector-section"
+  }, {
+    "id" : "css_mode_selector_end",
+    "line" : 164,
+    "desc" : "",
+    "symbol" : ".input-section"
+  }, {
+    "id" : "css_input_base",
+    "line" : 166,
+    "desc" : "通用输入区域与翻译结果文本框",
+    "symbol" : ".input-section"
+  }, {
+    "id" : "css_input_base_end",
+    "line" : 312,
+    "desc" : "",
+    "symbol" : ".smart-detect"
+  }, {
+    "id" : "css_smart_detect",
+    "line" : 314,
+    "desc" : "半智能识别区：识别面板、下拉切换与逐项映射 chips",
+    "symbol" : ".smart-detect"
+  }, {
+    "id" : "css_smart_detect_end",
+    "line" : 442,
+    "desc" : "",
+    "symbol" : ".braille-input-header"
+  }, {
+    "id" : "css_braille_input",
+    "line" : 445,
+    "desc" : "盲文点阵输入区：可点击点阵、翻译结果与操作按钮",
+    "symbol" : ".braille-input-header"
+  }, {
+    "id" : "css_braille_input_end",
+    "line" : 604,
+    "desc" : "",
+    "symbol" : ".a1z26-input-header"
+  }, {
+    "id" : "css_a1z26_input",
+    "line" : 606,
+    "desc" : "A1Z26 数字解码输入区：数字输入框、翻译结果与操作按钮",
+    "symbol" : ".a1z26-input-header"
+  }, {
+    "id" : "css_a1z26_input_end",
+    "line" : 765,
+    "desc" : "",
+    "symbol" : ".semaphore-input-header"
+  }, {
+    "id" : "css_semaphore_input",
+    "line" : 767,
+    "desc" : "旗语九宫格输入区：3×3 方向格、中心显示与操作按钮",
+    "symbol" : ".semaphore-input-header"
+  }, {
+    "id" : "css_semaphore_input_end",
+    "line" : 938,
+    "desc" : "",
+    "symbol" : ".ciphers-grid"
+  }, {
+    "id" : "css_cards",
+    "line" : 940,
+    "desc" : "密码面板网格、卡片外壳与占位提示",
+    "symbol" : ".ciphers-grid"
+  }, {
+    "id" : "css_cards_end",
+    "line" : 1016,
+    "desc" : "",
+    "symbol" : ".braille-unicode-row"
+  }, {
+    "id" : "css_braille_view",
+    "line" : 1018,
+    "desc" : "盲文输出卡片样式",
+    "symbol" : ".braille-unicode-row"
+  }, {
+    "id" : "css_braille_view_end",
+    "line" : 1091,
+    "desc" : "",
+    "symbol" : ".a1z26-code-row"
+  }, {
+    "id" : "css_a1z26_view",
+    "line" : 1093,
+    "desc" : "A1Z26 输出卡片样式",
+    "symbol" : ".a1z26-code-row"
+  }, {
+    "id" : "css_a1z26_view_end",
+    "line" : 1142,
+    "desc" : "",
+    "symbol" : ".tapcode-code-row"
+  }, {
+    "id" : "css_tapcode_view",
+    "line" : 1144,
+    "desc" : "敲击码输出卡片样式：数字对结果行 + 紧凑逐字符映射 chips",
+    "symbol" : ".tapcode-code-row"
+  }, {
+    "id" : "css_tapcode_view_end",
+    "line" : 1204,
+    "desc" : "",
+    "symbol" : ".semaphore-figures-row"
+  }, {
+    "id" : "css_semaphore_view",
+    "line" : 1206,
+    "desc" : "旗语输出卡片样式：Canvas 人物图排列",
+    "symbol" : ".semaphore-figures-row"
+  }, {
+    "id" : "css_semaphore_view_end",
+    "line" : 1253,
+    "desc" : "",
+    "symbol" : ".nato-cards-row"
+  }, {
+    "id" : "css_nato_view",
+    "line" : 1255,
+    "desc" : "北约音标输出卡片样式",
+    "symbol" : ".nato-cards-row"
+  }, {
+    "id" : "css_nato_view_end",
+    "line" : 1296,
+    "desc" : "",
+    "symbol" : ".site-footer"
+  }, {
+    "id" : "css_footer",
+    "line" : 1298,
+    "desc" : "页脚",
+    "symbol" : ".site-footer"
+  }, {
+    "id" : "css_footer_end",
+    "line" : 1309,
+    "desc" : "",
+    "symbol" : ".ciphers-grid"
+  }, {
+    "id" : "css_responsive",
+    "line" : 1311,
+    "desc" : "响应式：窄屏下网格单列、输入区纵向排列并缩小控件",
+    "symbol" : ".ciphers-grid"
+  }, {
+    "id" : "css_responsive_end",
+    "line" : 1448,
+    "desc" : ""
+  } ],
+  "UPDATE.md" : [ {
+    "id" : "cipher_update_intro",
+    "line" : 1,
+    "desc" : "cipher-translator 更新记录：仅追加，不修改历史条目"
+  }, {
+    "id" : "log_001",
+    "line" : 5,
+    "desc" : "[初始] 古典密码互译器"
+  }, {
+    "id" : "log_001_end",
+    "line" : 12,
+    "desc" : ""
+  }, {
+    "id" : "log_002",
+    "line" : 14,
+    "desc" : "[本次] 纳入标准项目管理模式并并入凯撒移位"
+  }, {
+    "id" : "log_002_end",
+    "line" : 19,
+    "desc" : ""
+  }, {
+    "id" : "log_003",
+    "line" : 21,
+    "desc" : "[本次] 文本输入块半智能数字识别"
+  }, {
+    "id" : "log_003_end",
+    "line" : 28,
+    "desc" : ""
+  }, {
+    "id" : "update_record_anchor",
+    "line" : 31,
+    "desc" : "追加区：后续新记录统一插入本锚点之前"
+  } ],
+  "TODO.md" : [ {
+    "id" : "todo_intro",
+    "line" : 1,
+    "desc" : "cipher-translator 本轮任务待办：文本输入半智能识别扩展 + 敲击码预览精简"
+  }, {
+    "id" : "todo_step1",
+    "line" : 5,
+    "desc" : "# 步骤 1：扩展半智能识别规则模块"
+  }, {
+    "id" : "todo_step1_end",
+    "line" : 8,
+    "desc" : ""
+  }, {
+    "id" : "todo_step2",
+    "line" : 10,
+    "desc" : "# 步骤 2：精简敲击码输出"
+  }, {
+    "id" : "todo_step2_end",
+    "line" : 14,
+    "desc" : ""
+  }, {
+    "id" : "todo_step3",
+    "line" : 16,
+    "desc" : "# 步骤 3：主页文案与接入"
+  }, {
+    "id" : "todo_step3_end",
+    "line" : 19,
+    "desc" : ""
+  }, {
+    "id" : "todo_step4",
+    "line" : 21,
+    "desc" : "# 步骤 4：自测与文档"
+  }, {
+    "id" : "todo_step4_end",
+    "line" : 25,
+    "desc" : ""
+  }, {
+    "id" : "todo_end",
+    "line" : 27,
+    "desc" : "全部完成后删除本文件"
+  }, {
+    "id" : "todo_end_end",
+    "line" : 29,
+    "desc" : ""
+  } ]
+}
