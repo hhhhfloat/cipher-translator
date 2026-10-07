@@ -1,0 +1,93 @@
+1. 九宫格（无点）—— A ~ I
+左上：A
+
+上中：B
+
+右上：C
+
+左中：D
+
+正中：E
+
+右中：F
+
+左下：G
+
+下中：H
+
+右下：I
+
+2. 九宫格（带点）—— J ~ R
+左上：J
+
+上中：K
+
+右上：L
+
+左中：M
+
+正中：N
+
+右中：O
+
+左下：P
+
+下中：Q
+
+右下：R
+
+3. 叉形（X形）—— S ~ Z
+这个叉形被分成了上下两排，每排各 4 个区域，总共 8 个位置：
+
+左上：S
+
+左中：T
+
+左下：W
+
+最左下：X
+
+右上：U
+
+右中：V
+
+右下：Y
+
+最右下：Z
+
+图形使用的是无外框的形状，如右上角无点的C，其应当对应一个L形
+
+可参考js：
+const pigpenMap = {
+  // 九宫格（无点）
+  'A': 'grid1-top-left',
+  'B': 'grid1-top-center',
+  'C': 'grid1-top-right',
+  'D': 'grid1-middle-left',
+  'E': 'grid1-center',
+  'F': 'grid1-middle-right',
+  'G': 'grid1-bottom-left',
+  'H': 'grid1-bottom-center',
+  'I': 'grid1-bottom-right',
+
+  // 九宫格（带点）
+  'J': 'grid2-top-left',
+  'K': 'grid2-top-center',
+  'L': 'grid2-top-right',
+  'M': 'grid2-middle-left',
+  'N': 'grid2-center',
+  'O': 'grid2-middle-right',
+  'P': 'grid2-bottom-left',
+  'Q': 'grid2-bottom-center',
+  'R': 'grid2-bottom-right',
+
+  // 叉形（X形，8 个区域）
+  'S': 'x-top-left',
+  'T': 'x-middle-left',
+  'U': 'x-top-right',
+  'V': 'x-middle-right',
+  'W': 'x-bottom-left',
+  'X': 'x-bottom-left-most',
+  'Y': 'x-bottom-right',
+  'Z': 'x-bottom-right-most'
+};

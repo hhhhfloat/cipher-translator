@@ -12,16 +12,19 @@
  *       - 大于 2/3 的数字 ≥ 65 → ASCII 码转换，否则 → A1Z26 解码
  *       - 全部为两位数字（数位 1–5） → 追加敲击码解码
  *       - 全部由 0–2 组成且含数字 2  → 追加三进制解码
- *       - 始终追加「进制转换」栏目：二进制 / 三进制（位数对齐）与二进制 7 位（ASCII）
+ *       - 始终追加「进制转换」栏目：二进制区分「五位二进制（A1Z26，1–26 → 字母）」与
+ *         「七位二进制（ASCII，32–126 → 字符）」两种视图，另提供三进制（位数对齐）视图
  *   - 无空格的一整串数字（长度 > 5）：从头部取「能译成词典词」的子串并递归分解剩余部分；
  *     词典按使用频率分层（每 5k 一档），短词（≤3 字母）只取自最高频档；能分解为词典词时给出
  *     「分段匹配」栏目（如 91419945 → INSIDE 与 IN SIDE）
  * 渲染时先过滤掉「可解码 token 占比 ≤ 1/2」的候选，再自动选中「译出字母最多」的一项；
- * 多个候选以并列小按钮切换，栏目内部视图（如分段解、进制）同样以按钮切换。
+ * 多个候选以并列小按钮切换，栏目内部视图（如分段解、进制）同样以按钮切换，
+ * 视图可另带一行附注 note（如进制转换的二进制视图附示译出的字母 / 字符）。
  */
 
 const SmartDetect = (() => {
     'use strict';
+
 
 
 
@@ -42,18 +45,8 @@ const SmartDetect = (() => {
     // @anchor: smart_detect_parse_end
 
     // @anchor: smart_detect_morse
-    // 摩斯表与解析：识别「点划 + 空格 + 单词分隔(/ 或 |)」输入，返回按单词分组的点划数组
-    const MORSE_TABLE = {
-        '.-': 'A', '-...': 'B', '-.-.': 'C', '-..': 'D', '.': 'E',
-        '..-.': 'F', '--.': 'G', '....': 'H', '..': 'I', '.---': 'J',
-        '-.-': 'K', '.-..': 'L', '--': 'M', '-.': 'N', '---': 'O',
-        '.--.': 'P', '--.-': 'Q', '.-.': 'R', '...': 'S', '-': 'T',
-        '..-': 'U', '...-': 'V', '.--': 'W', '-..-': 'X', '-.--': 'Y',
-        '--..': 'Z',
-        '-----': '0', '.----': '1', '..---': '2', '...--': '3', '....-': '4',
-        '.....': '5', '-....': '6', '--...': '7', '---..': '8', '----.': '9'
-    };
-
+    // 摩斯解析：识别「点划 + 空格 + 单词分隔(/ 或 |)」输入，返回按单词分组的点划数组
+    // 点划表来自摩斯模块 MorseCipher（数据层 CipherData.morse），本模块只做输入判定与渲染
     function parseMorseWords(text) {
         const trimmed = String(text || '').trim();
         if (!trimmed) return null;
@@ -63,6 +56,17 @@ const SmartDetect = (() => {
         if (!words.length) return null;
         return words.map(function (w) { return w.trim().split(/\s+/); });
     }
+
+    // 点划 → 字符 查表（由摩斯模块的表反查构建；摩斯模块缺失时为空表，未收录点划显示 '?'）
+    const MORSE_TABLE = (function () {
+        const reverse = {};
+        const src = (typeof MorseCipher !== 'undefined' && MorseCipher && MorseCipher.TABLE) ? MorseCipher.TABLE : null;
+        if (src) {
+            Object.keys(src).forEach(function (ch) { reverse[src[ch]] = ch; });
+        }
+        return reverse;
+    })();
+
     // @anchor: smart_detect_morse_end
 
 
@@ -245,14 +249,24 @@ const SmartDetect = (() => {
         };
     }
 
-    // 左侧补零到指定宽度，用于二进制 / 三进制位数对齐
+    // @anchor: smart_detect_baseconv
+    // 进制转换栏目：各 token 按 srcBase 解析后转三进制（位数对齐），并把二进制按位宽用途区分——
+    // 「五位二进制（A1Z26，值 1–26 → 字母）」与「七位二进制（ASCII，值 32–126 → 字符）」；
+    // 二进制视图的结果行给出对齐后的二进制数字（与三进制视图一致），译出的字母 / 字符放在附注 note 中
     function padLeft(str, width) {
         let out = str;
         while (out.length < width) out = '0' + out;
         return out;
     }
 
-    // 进制转换栏目：把各 token 按 srcBase 解析后转为二进制 / 三进制（位数对齐）与 7 位二进制（ASCII）视图
+    // 字符串中成功译出的字符数（'?' 视为未译出）；用于决定默认先展示哪种二进制视图
+    function decodedCount(str) {
+        let n = 0;
+        const s = String(str == null ? '' : str);
+        for (let i = 0; i < s.length; i++) { if (s.charAt(i) !== '?') n++; }
+        return n;
+    }
+
     function buildBaseConversion(tokens, srcBase) {
         const values = tokens.map(function (token) {
             const v = parseInt(token, srcBase);
@@ -270,45 +284,73 @@ const SmartDetect = (() => {
 
         const binRaw = values.map(function (v) { return v === null ? '?' : v.toString(2); });
         const triRaw = values.map(function (v) { return v === null ? '?' : v.toString(3); });
-        const binWidth = maxWidth(binRaw, 0, srcBase === 2);
         const triWidth = maxWidth(triRaw, 0, srcBase === 3);
+        const bin5Width = maxWidth(binRaw, 5, srcBase === 2);
         const bin7Width = maxWidth(binRaw, 7, false);
 
-        const binView = {
-            label: '二进制',
-            tag: '各值转二进制（位数对齐）',
-            result: binRaw.map(function (s) { return padLeft(s, binWidth); }).join(' '),
+        // 无效 token 保持 '?'，其余左补零到统一宽度
+        function binChip(i, width) {
+            return binRaw[i] === '?' ? '?' : padLeft(binRaw[i], width);
+        }
+
+        // 按指定宽度对齐的二进制结果行（各值以空格分隔，便于逐位对齐阅读）
+        function binRow(width) {
+            return values.map(function (v) {
+                return v === null ? '?' : padLeft(v.toString(2), width);
+            }).join(' ');
+        }
+
+        // 五位二进制（A1Z26）：值 1–26 → 字母，其余为 '?'
+        const bin5Letters = values.map(function (v) {
+            return (v !== null && v >= 1 && v <= 26) ? String.fromCharCode(64 + v) : '?';
+        }).join('');
+        const bin5View = {
+            label: '五位二进制（A1Z26）',
+            tag: '各值转 5 位二进制（值 1–26 → 字母）',
+            result: binRow(bin5Width),
+            note: decodedCount(bin5Letters) ? 'A1Z26 字母：' + bin5Letters : '',
             chips: tokens.map(function (token, i) {
-                return { from: token, to: padLeft(binRaw[i], binWidth) };
+                return { from: token, to: binChip(i, bin5Width) };
+            })
+        };
+
+        // 七位二进制（ASCII）：值 32–126 → 可打印字符，其余为 '?'
+        const bin7Chars = values.map(function (v) {
+            return (v !== null && v >= 32 && v <= 126) ? String.fromCharCode(v) : '?';
+        }).join('');
+        const bin7View = {
+            label: '七位二进制（ASCII）',
+            tag: '各值转 7 位二进制（值 32–126 → ASCII 字符）',
+            result: binRow(bin7Width),
+            note: decodedCount(bin7Chars) ? 'ASCII 字符：' + bin7Chars : '',
+            chips: tokens.map(function (token, i) {
+                return { from: token, to: binChip(i, bin7Width) };
             })
         };
 
         const triView = {
             label: '三进制',
             tag: '各值转三进制（位数对齐）',
-            result: triRaw.map(function (s) { return padLeft(s, triWidth); }).join(' '),
+            result: triRaw.map(function (s) { return s === '?' ? '?' : padLeft(s, triWidth); }).join(' '),
             chips: tokens.map(function (token, i) {
-                return { from: token, to: padLeft(triRaw[i], triWidth) };
+                return { from: token, to: triRaw[i] === '?' ? '?' : padLeft(triRaw[i], triWidth) };
             })
         };
 
-        const bin7View = {
-            label: '二进制 · 7 位（ASCII）',
-            tag: '各值转 7 位二进制 → ASCII 字符',
-            result: values.map(function (v) {
-                return (v !== null && v >= 32 && v <= 126) ? String.fromCharCode(v) : '?';
-            }).join(''),
-            chips: tokens.map(function (token, i) {
-                return { from: token, to: padLeft(binRaw[i], bin7Width) };
-            })
-        };
+        // 默认先展示更契合的一种二进制（译出字符更多者；并列取五位 A1Z26）
+        const binViews = (decodedCount(bin5Letters) >= decodedCount(bin7Chars))
+            ? [bin5View, bin7View]
+            : [bin7View, bin5View];
 
         return {
             key: 'baseconv',
             title: '进制转换',
-            views: [binView, triView, bin7View]
+            views: binViews.concat([triView])
         };
     }
+
+    // @anchor: smart_detect_baseconv_end
+
 
 
     // @anchor: smart_detect_digitwords
@@ -620,7 +662,7 @@ const SmartDetect = (() => {
                     });
                     btn.classList.add('is-active');
                     btn.setAttribute('aria-pressed', 'true');
-                    renderItem(content, item);
+                    renderItem(content, item, dict);
                 });
                 buttons.push(btn);
                 tabs.appendChild(btn);
@@ -629,12 +671,13 @@ const SmartDetect = (() => {
         }
 
         container.appendChild(content);
-        renderItem(content, candidates[best]);
+        renderItem(content, candidates[best], dict);
     }
 
+
     // @anchor: smart_detect_render_item
-    // 渲染单个识别栏目：标题 + 视图（多于一个视图时以并列小按钮切换，如进制）+ 规则说明 + 结果串 + 映射 chips
-    function renderItem(container, item) {
+    // 渲染单个识别栏目：标题 + 视图（多于一个视图时以并列小按钮切换，如进制）+ 规则说明 + 结果行 + 附注 + 映射 chips
+    function renderItem(container, item, dict) {
         container.innerHTML = '';
 
         const views = (item.views && item.views.length) ? item.views : [item];
@@ -649,8 +692,13 @@ const SmartDetect = (() => {
         const tag = document.createElement('span');
         tag.className = 'smart-item-tag';
 
+        // 识别结果成词/词组时，此处放一个百度翻译跳转按钮
+        const action = document.createElement('span');
+        action.className = 'smart-item-action';
+
         head.appendChild(title);
         head.appendChild(tag);
+        head.appendChild(action);
         container.appendChild(head);
 
         // 栏内视图切换（仅当栏目定义多个视图，如进制转换）
@@ -677,12 +725,35 @@ const SmartDetect = (() => {
         const result = document.createElement('div');
         result.className = 'smart-item-result' + (item.key === 'baseconv' ? ' smart-num' : '');
 
+        // 附注行：结果行之外的补充信息（如进制转换的二进制视图附示译出的字母 / 字符）
+        const note = document.createElement('div');
+        note.className = 'smart-item-note smart-num';
+
         const chips = document.createElement('div');
         chips.className = 'smart-chips';
+
+        // 附注形如「A1Z26 字母：HELLO」，取冒号后的译出文本
+        function noteTextOf(view) {
+            const noteText = view.note || '';
+            const idx = noteText.indexOf('：');
+            return idx === -1 ? noteText : noteText.slice(idx + 1);
+        }
+
+        // 取视图可用于「成词判定」的文本：优先结果行，其次附注里译出的字母 / 字符
+        function phraseOf(view) {
+            const candidates = [view.result, noteTextOf(view)];
+            for (let i = 0; i < candidates.length; i++) {
+                const s = candidates[i];
+                if (typeof s === 'string' && s && s.indexOf('?') === -1) return s;
+            }
+            return '';
+        }
 
         function paint(view) {
             tag.textContent = view.tag || '';
             result.textContent = view.result || '-';
+            note.textContent = view.note || '';
+            note.hidden = !view.note;
             chips.innerHTML = '';
             (view.chips || []).forEach(function (chip) {
                 const chipEl = document.createElement('span');
@@ -705,12 +776,22 @@ const SmartDetect = (() => {
                 chipEl.appendChild(toEl);
                 chips.appendChild(chipEl);
             });
+
+            // 识别结果成词/词组 → 显示「翻译」跳转按钮（词典不可用时按启发式判断）
+            action.innerHTML = '';
+            const decoded = phraseOf(view);
+            if (typeof TranslateLink !== 'undefined' && TranslateLink && decoded
+                && TranslateLink.isWordPhrase(decoded, dict)) {
+                action.appendChild(TranslateLink.createButton(decoded, '🌐 翻译'));
+            }
         }
 
         container.appendChild(result);
+        container.appendChild(note);
         container.appendChild(chips);
         paint(views[0]);
     }
+
     // @anchor: smart_detect_render_item_end
 
     // @anchor: smart_detect_render_end

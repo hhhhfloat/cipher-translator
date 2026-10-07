@@ -364,6 +364,38 @@ body {
 
 /* @anchor: caesar_css_results_end */
 
+/* @anchor: caesar_css_translate */
+/* 成词/词组结果行的翻译跳转按钮 */
+.row-tools {
+    margin-top: 6px;
+}
+
+.translate-jump {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-family: var(--font-sans, inherit);
+    font-size: 0.72rem;
+    font-weight: 600;
+    line-height: 1.5;
+    color: #2f6fb0;
+    background: #eaf2fb;
+    border: 1px solid #cfe0f3;
+    border-radius: 999px;
+    padding: 1px 10px;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background 0.15s, border-color 0.15s;
+}
+
+.translate-jump:hover {
+    background: #dbeafb;
+    border-color: #a9caf0;
+}
+
+/* @anchor: caesar_css_translate_end */
+
+
 /* @anchor: caesar_css_footer */
 /* 页脚 */
 /* --- 底部 --- */

@@ -215,6 +215,17 @@
                 tdResult.appendChild(badgeRow);
             }
 
+            // 成词/词组的结果行：附「翻译」跳转按钮，点开即可查看含义
+            // @anchor: caesar_row_tools
+            // 命中词典词（成词/词组）的移位结果行附加百度翻译跳转按钮
+            if (row.score > 0 && typeof TranslateLink !== 'undefined') {
+                var rowTools = document.createElement('div');
+                rowTools.className = 'row-tools';
+                rowTools.appendChild(TranslateLink.createButton(row.text, '🌐 翻译查看含义'));
+                tdResult.appendChild(rowTools);
+            }
+            // @anchor: caesar_row_tools_end
+
             tr.appendChild(tdResult);
             resultsBody.appendChild(tr);
         }
@@ -250,7 +261,7 @@
             if (rows[i].score > 0) { pinned++; }
         }
         wordHint.textContent = pinned > 0
-            ? '🔍 命中词典词：' + pinned + ' 个移位已置顶高亮（双击标题可开关）'
+            ? '🔍 命中词典词：' + pinned + ' 个移位已置顶高亮（双击标题可开关；点「🌐 翻译查看含义」可查中文释义）'
             : '🔍 未发现词典词';
         wordHint.style.display = '';
     }

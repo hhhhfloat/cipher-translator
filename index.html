@@ -1,5 +1,5 @@
 <!-- @anchor: index_intro -->
-<!-- 古典密码互译器结构骨架：头部导航 + 三种输入模式区（文本 / 盲文 / 旗语）+ 五张密码输出卡片，脚本按序加载 -->
+<!-- 古典密码互译器结构骨架：头部导航 + 四种输入模式区（文本 / 盲文 / 旗语 / 猪圈）+ 九张密码输出卡片，脚本按序加载 -->
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -12,7 +12,7 @@
     <header class="site-header">
         <div class="header-icon">🔐</div>
         <h1>古典密码互译器</h1>
-        <p class="subtitle">Classical Cipher Translator — 盲文 · A1Z26 · 敲击码 · 旗语 · 北约音标</p>
+        <p class="subtitle">Classical Cipher Translator — 盲文 · A1Z26 · 敲击码 · 旗语 · 北约音标 · 摩斯 · 猪圈 · ASCII · 进制</p>
         <nav class="header-nav">
             <a href="caesar.html" class="nav-caesar-link" title="查看全部 25 种凯撒移位">🔄 凯撒移位</a>
         </nav>
@@ -20,9 +20,8 @@
 
     <main class="main-content">
 
-
         <!-- @anchor: html_mode_selector -->
-<!-- 输入模式选择器：文本 / 盲文 / 旗语 三种输入切换 -->
+<!-- 输入模式选择器：文本 / 盲文 / 旗语 / 猪圈 四种输入切换 -->
         <section class="mode-selector-section">
             <div class="mode-selector" id="modeSelector">
                 <button class="mode-btn active" data-mode="text">
@@ -37,13 +36,17 @@
                     <span class="mode-btn-icon">🚩</span>
                     <span class="mode-btn-label">旗语输入</span>
                 </button>
+                <button class="mode-btn" data-mode="pigpen">
+                    <span class="mode-btn-icon">🖋️</span>
+                    <span class="mode-btn-label">猪圈输入</span>
+                </button>
             </div>
         </section>
-        
+
         <!-- @anchor: html_mode_selector_end -->
 
         <!-- @anchor: html_text_input -->
-<!-- 文本输入区：键入字母 / 数字串 / 二进制 / 十六进制 / 摩斯点划，实时转换五种密码并启用智能识别；不设长度上限 -->
+<!-- 文本输入区：键入字母 / 数字串 / 二进制 / 十六进制 / 摩斯点划，实时转换九种密码并启用智能识别；不设长度上限 -->
         <section class="input-section" id="textInputSection">
             <div class="input-wrapper">
                 <label for="textInput" class="input-label">输入英文文本</label>
@@ -58,7 +61,7 @@
                 </div>
                 <span id="charCount" class="char-count">0 字符</span>
             </div>
-            <p class="input-hint">支持 A-Z 字母实时转换五种古典密码；数字串、二进制、十六进制、三进制或摩斯点划会被智能识别（A1Z26 / 敲击码 / ASCII / 康托展开 / 进制转换），自动选中译出字母最多的结果；无空格数字串还会按词典词递归分段（如 91419945 → INSIDE / IN SIDE）。输入不设长度上限</p>
+            <p class="input-hint">支持 A-Z 字母实时转换九种古典密码（含摩斯、猪圈、ASCII、各进制）；数字串、二进制、十六进制、三进制或摩斯点划会被智能识别（A1Z26 / 敲击码 / ASCII / 康托展开 / 进制转换），自动选中译出字母最多的结果；无空格数字串还会按词典词递归分段（如 91419945 → INSIDE / IN SIDE）。输入不设长度上限</p>
 
             <!-- @anchor: html_smart_detect -->
 <!-- 半智能识别区：自动识别并按「译出字母最多」选中结果，可解码过半的候选以并列小按钮切换；含进制转换栏目；无空格数字串（>5）会按词典词递归分段（如 91419945 → INSIDE / IN SIDE） -->
@@ -71,18 +74,26 @@
             </div>
 
             <!-- @anchor: html_smart_detect_end -->
+
+            <!-- @anchor: html_translate_bar -->
+            <!-- 翻译跳转条：当前输入被判定为英文词/词组时出现，一键跳百度翻译查看含义 -->
+            <div class="translate-bar" id="translateBar" style="display:none;">
+                <span class="translate-bar-hint">🔍 识别到英文词/词组，可跳转查询含义：</span>
+            </div>
+            <!-- @anchor: html_translate_bar_end -->
+
         </section>
 
         <!-- @anchor: html_text_input_end -->
 
         <!-- @anchor: html_braille_input -->
-        <!-- 盲文点阵输入区域：点击 2×3 点阵自动解码为字母并追加到文本框 -->
+        <!-- 盲文点阵输入区域：点击 2×3 点阵自动解码为字母；选定字母后按空格（或「添加到文本」）追加到文本框 -->
         <section class="input-section braille-input-section" id="brailleInputSection" style="display:none;">
             <div class="braille-input-header">
                 <span class="braille-input-icon">⠿</span>
                 <h2>盲文点阵输入</h2>
             </div>
-            <p class="braille-input-hint">点击 2×3 点阵输入盲文，自动翻译为英文字母</p>
+            <p class="braille-input-hint">点击 2×3 点阵输入盲文，自动翻译为英文字母；选定字母后按空格即可添加到文本</p>
             <div class="braille-input-area">
                 <!-- 2列×3行点阵 -->
                 <div class="braille-dot-input-grid" id="brailleDotInput">
@@ -120,15 +131,14 @@
         </section>
         <!-- @anchor: html_braille_input_end -->
 
-        
         <!-- @anchor: html_semaphore_input -->
-        <!-- 旗语九宫格输入区域：依次点击两个方向格（忽略顺序）解码为字母 -->
+        <!-- 旗语九宫格输入区域：依次点击两个方向格（忽略顺序）解码为字母；选好后按空格（或「添加到文本」）追加到文本框 -->
         <section class="input-section semaphore-input-section" id="semaphoreInputSection" style="display:none;">
             <div class="semaphore-input-header">
                 <span class="semaphore-input-icon">🚩</span>
                 <h2>旗语九宫格输入</h2>
             </div>
-            <p class="semaphore-input-hint">依次点击两个方向格子（忽略顺序），分别代表两手旗位</p>
+            <p class="semaphore-input-hint">依次点击两个方向格子（忽略顺序），分别代表两手旗位；选好后按空格即可添加到文本</p>
             <div class="semaphore-input-area">
                 <!-- 3×3 九宫格：箭头标签与 data-dir 均使用信号员自身视角（原形态，不做镜像翻转） -->
                 <div class="semaphore-grid" id="semaphoreGrid">
@@ -185,8 +195,42 @@
         </section>
         <!-- @anchor: html_semaphore_input_end -->
 
+        <!-- @anchor: html_pigpen_input -->
+        <!-- 猪圈字形输入区域：按「九宫格（无点 / 加点）/ 叉形（无点 / 加点）」四组字形按钮生成，点击即把对应字母追加到翻译结果 -->
+        <!-- 排版：九宫格按钮按 3×3 格位排列；叉形按钮按开口方向（上 / 左 / 右 / 下）摆成十字；空格 / 退格支持键盘（Space / Backspace） -->
+        <section class="input-section pigpen-input-section" id="pigpenInputSection" style="display:none;">
+            <div class="pigpen-input-header">
+                <span class="pigpen-input-icon">🖋️</span>
+                <h2>猪圈密码字形输入</h2>
+            </div>
+            <p class="pigpen-input-hint">点击字形按钮逐字输入猪圈密码（前两组为九宫格 A–I、加点九宫格 J–R，按 3×3 格位排列；后两组为叉形 S–V、加点叉形 W–Z，按开口方向上下左右摆放），结果同步显示在下方；空格与退格可直接用键盘 Space / Backspace，再由「添加到文本」写入文本框</p>
+            <div class="pigpen-input-area">
+                <div class="pigpen-glyph-groups" id="pigpenGlyphGroups"></div>
+                <div class="pigpen-side">
+                    <div class="special-input-textbox-wrapper">
+                        <label class="special-input-textbox-label">翻译结果</label>
+                        <input
+                            type="text"
+                            id="pigpenOutputTextbox"
+                            class="special-input-textbox"
+                            readonly
+                            placeholder="点击字形后在此显示翻译文本"
+                        >
+                    </div>
+                    <div class="pigpen-input-actions">
+                        <button id="pigpenAddBtn" class="pigpen-add-btn" disabled>添加到文本</button>
+                        <button id="pigpenSpaceBtn" class="pigpen-clear-btn">␣ 空格</button>
+                        <button id="pigpenBackspaceBtn" class="pigpen-clear-btn">⌫ 退格</button>
+                        <button id="pigpenClearTextBtn" class="pigpen-clear-btn">清除翻译结果</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- @anchor: html_pigpen_input_end -->
+
         <!-- @anchor: html_cipher_cards -->
-        <!-- 密码面板网格：盲文 / A1Z26 / 敲击码 / 旗语 / 北约音标 五张输出卡片 -->
+        <!-- 密码面板网格：盲文 / A1Z26 / 敲击码 / 旗语 / 北约音标 / 摩斯 / 猪圈 / ASCII / 进制 九张输出卡片 -->
         <section class="ciphers-grid">
 
             <!-- 盲文 -->
@@ -259,7 +303,64 @@
                 </div>
             </div>
 
+            <!-- 摩斯电码 -->
+            <div class="cipher-card" id="morse-card">
+                <div class="card-header">
+                    <span class="card-icon morse-icon">·−</span>
+                    <div>
+                        <h2>摩斯电码</h2>
+                        <span class="card-tag">Morse Code · 点划编码</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="cipher-output" id="morse-output"></div>
+                </div>
+            </div>
+
+            <!-- 猪圈密码 -->
+            <div class="cipher-card" id="pigpen-card">
+                <div class="card-header">
+                    <span class="card-icon pigpen-icon">🖋️</span>
+                    <div>
+                        <h2>猪圈密码</h2>
+                        <span class="card-tag">Pigpen · 九宫格与叉形</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="cipher-output" id="pigpen-output"></div>
+                </div>
+            </div>
+
+            <!-- ASCII 码 -->
+            <div class="cipher-card" id="ascii-card">
+                <div class="card-header">
+                    <span class="card-icon ascii-icon">65</span>
+                    <div>
+                        <h2>ASCII 码</h2>
+                        <span class="card-tag">字符 ↔ 十进制码</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="cipher-output" id="ascii-output"></div>
+                </div>
+            </div>
+
+            <!-- 进制转换 -->
+            <div class="cipher-card" id="numeral-card">
+                <div class="card-header">
+                    <span class="card-icon numeral-icon">01</span>
+                    <div>
+                        <h2>进制</h2>
+                        <span class="card-tag">二进制 · 八进制 · 十六进制</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="cipher-output" id="numeral-output"></div>
+                </div>
+            </div>
+
         </section>
+
         <!-- @anchor: html_cipher_cards_end -->
 
     </main>
@@ -269,18 +370,22 @@
     </footer>
 
     <!-- @anchor: html_scripts -->
-    <!-- 脚本加载顺序：数据文件 → 各密码模块（含康托展开）→ 词典工具 → 半智能识别 → 主脚本 -->
+    <!-- 脚本加载顺序：数据文件 → 各密码模块（盲文 / 摩斯 / 猪圈 / ASCII / 进制等）→ 词典工具 → 翻译跳转工具 → 半智能识别 → 主脚本 -->
     <script src="cipher-data.js"></script>
     <script src="modules/braille.js"></script>
     <script src="modules/a1z26.js"></script>
     <script src="modules/tapcode.js"></script>
     <script src="modules/semaphore.js"></script>
     <script src="modules/nato-phonetic.js"></script>
+    <script src="modules/morse.js"></script>
+    <script src="modules/pigpen.js"></script>
+    <script src="modules/ascii.js"></script>
+    <script src="modules/numeral.js"></script>
     <script src="modules/cantor.js"></script>
     <script src="modules/word-finder.js"></script>
+    <script src="modules/translate-link.js"></script>
     <script src="modules/smart-detect.js"></script>
     <script src="script.js"></script>
-
     <!-- @anchor: html_scripts_end -->
 </body>
 </html>

@@ -88,5 +88,102 @@
 - **文档**：`PROJECT.md` 架构（resources 层、词典加载流）、决策（频率分层、短词限档、排序规则）、限制同步。
 
 
+<!-- @anchor: log_010 -->
+# [本次] 成词/词组结果附「百度翻译」跳转按钮
+- 新增 `modules/translate-link.js`（全局 `TranslateLink`，Node 带 `module` 导出）：`translate_link_url` 区块的 `buildUrl()` 拼装 `https://fanyi.baidu.com/mtpe-individual/transText?query=<文本>&lang=en2zh`（`encodeURIComponent` 编码）；`translate_link_detect` 区块的 `isWordPhrase(text, dict)` 优先用 `WordFinder.findWords()` 判定（`scoreRanges ≥ 2` 抑制短词噪声），词典缺失 / 为空时退回「仅字母、含 ≥ 3 字母词」的启发式；词典归一化兼容单档 Set 与分层数组 `[{tier,words}]`（`WeakMap` 缓存合并结果）；`translate_link_button` 区块的 `createButton()` / `attach()` 生成并挂载 `.translate-jump` 小按钮（新窗口 + `noopener noreferrer`）。
+- 凯撒页：`caesar.js` 新增 `caesar_row_tools` 区块——命中词典词（`row.score > 0`）的移位结果行追加「🌐 翻译查看含义」按钮，query 为该移位后的文本；提示条文案补充引导；`caesar.html` 脚本区引入 `modules/translate-link.js`；`caesar.css` 新增 `caesar_css_translate` 区块（`.row-tools` / `.translate-jump`）。
+- 主页：`index.html` 文本输入区新增 `html_translate_bar`（`#translateBar`）并在脚本区引入 `translate-link.js`；`script.js` 新增 `script_translate` 区块 `updateTranslateBar()`（当前输入成词/词组时显示跳转条、否则隐藏；只增删 `.translate-jump` 不重复累积），接入 `onInputChange` / `onClear` / `script_init`，并在 `loadSmartWordDict()` 两个成功分支中随词典就绪重算；`modules/smart-detect.js` 的 `renderItem()` 增加 `dict` 参数，识别结果成词/词组时在栏目标题栏（`.smart-item-action`）显示翻译按钮（栏内视图切换时同步刷新）；`style.css` 新增 `css_translate` 区块（`.translate-jump` / `.translate-bar` / `.smart-item-action`）。
+- 自测：新增 `tmp/test-translate-link.js`（33 断言：URL 编码、分层 / 单档 / 无词典判定、按钮属性、识别栏目内按钮的有无、凯撒页 DOM 桩渲染出按钮且非命中行无按钮）；`tmp/test-integration.js` 扩至 25 断言（脚本串联纳入 `translate-link.js`，验证翻译条显示 / 隐藏 / 不重复累积、识别结果按钮的有无）；`tmp/check-syntax.js` 纳入 `translate-link.js`；全部通过。
+- 文档：`PROJECT.md` 架构（跳转工具层与翻译跳转流）、决策（成词/词组一键查义）、约定（模块清单与加载顺序）、限制同步。
+<!-- @anchor: log_010_end -->
+
+
+<!-- @anchor: log_011 -->
+# [本次] 新增摩斯 / 猪圈 / ASCII / 进制四类输出卡片，并加入猪圈字形按钮输入
+- **数据层**：`cipher-data.js` 新增 `data_morse`（字符 → 点划表）与 `data_pigpen`（26 个字形描述：`grid` 行/列 + `x` 四区 pos + `dot` 加点标记；A–I 第一个九宫格、J–M 第一个交叉格、N–Z 为对应加点字形），并新增 `cipher_data_export` 区块（Node 导出守卫）。
+- **新增模块**：`modules/morse.js`（`morse_table` / `morse_encode` / `morse_decode` / `morse_render`：点划结果行 + 逐字符 chips，词间以 `/` 分隔）；`modules/pigpen.js`（`pigpen_map`、`pigpen_geometry` 字形纯几何 + 中文描述、`pigpen_encode` / `pigpen_decode` 字形键 `g00` / `x2` / `g00d`、`pigpen_glyph_svg` 几何 → SVG、`pigpen_render` 字形 + 字母标签）；`modules/ascii.js`（十进制码值行 + 逐字符卡片）；`modules/numeral.js`（`numeral_rows`：字符行 + 二进制 8 位 / 八进制 3 位 / 十六进制 2 位左补零对齐；`encode(text, base)` / `decode(encoded, base)` 可指定进制）。
+- **智能识别去重**：`modules/smart-detect.js` 的 `smart_detect_morse` 区块移除本地摩斯表，改为由 `MorseCipher.TABLE` 反查构建 `MORSE_TABLE`（点划表的唯一来源为数据层）。
+- **主页**：`index.html` 增至九张输出卡片、新增 `html_pigpen_input` 输入区与第四个输入模式按钮（脚本区按序引入四个新模块）；`script.js` 新增 `script_pigpen_input` 区块（`buildPigpenButtons()` 按字形数据生成四组按钮、点击逐字追加、空格 / 退格 / 清除 / 添加到文本）与 `updatePigpenOutputTextbox()` / `clearPigpenAccumulatedText()`，`switchMode()` 支持 `pigpen`，渲染循环纳入四个新模块；`style.css` 新增 `css_morse_view` / `css_pigpen_view` / `css_ascii_view` / `css_numeral_view` / `css_pigpen_input` 区块与窄屏适配。
+- **自测**：新增 `tmp/test-new-ciphers.js`（77 断言：摩斯编解码与表来源、猪圈对应关系 / 字形键 / 几何 / SVG、ASCII、进制对齐行）；`tmp/test-smart-detect.js` 头部改为先载入 `cipher-data.js` 与 `morse.js`（66 断言全绿）；`tmp/test-integration.js` 扩至 48 断言（新卡片渲染、26 个字形按钮含 SVG、模式切换、逐字输入 / 空格 / 退格 / 添加到文本）；新增 `tmp/preview-pigpen.js` 打印 26 个字形 ASCII 点阵供人工核对；`tmp/check-syntax.js` 纳入四个新模块——全部通过。
+- **文档**：`PROJECT.md` 的定位 / 架构（九模块、数据层四类映射、猪圈输入流）/ 决策（摩斯表集中、猪圈几何化与取边画法、对应关系、输入设计、四卡片分工）/ 约定（模块清单与加载顺序）/ 限制同步。
+<!-- @anchor: log_011_end -->
+
+
+<!-- @anchor: log_012 -->
+# [本次] 对照 temp-explain.txt 修复猪圈对应关系与字形渲染
+- **对应关系（数据层 `cipher-data.js` 的 `data_pigpen`）**：A–I 无点九宫格（3×3 读序）；J–R 加点九宫格（同一格位、格心补一点）；S–Z 叉形 8 个扇形区（`pos` = top-left / middle-left / bottom-left / bottom-left-most / top-right / middle-right / bottom-right / bottom-right-most，无加点）；文件头注释同步。
+- **字形渲染（`modules/pigpen.js` 的 `pigpen_geometry`）**：九宫格改「无外框取边」画法——只画该格位朝外的边并延伸至整个字形框（角格 2 条 = L 形、边格 3 条、中心 4 条），修正原先「每格 4 条边」导致 C 不成 L 形的问题；叉形改为该区域两侧的辐线（中心 → 正方形边界，共 8 区、左右各 4）；字形键由 `x` + 区号改为 `x-` + 区域名（如 `x-top-left`）。
+- **输入层**：`script.js` 的 `buildPigpenButtons()` 按钮分组由四组（九宫格 / 交叉格 × 是否加点）改为三组（九宫格 A–I、加点九宫格 J–R、叉形 S–Z）；`index.html` 猪圈输入提示与卡片副标题、`style.css` 区块说明同步改为「九宫格 / 叉形」。
+- **自测**：更新 `tmp/test-new-ciphers.js`（90 断言：A–I / J–R / S–Z 对应关系、字形键与往返、九宫格取边条数 2/3/4、叉形两条辐线）与 `tmp/preview-pigpen.js`（按三组打印字形点阵）；`tmp/check-syntax.js` 全绿。
+- **文档**：`PROJECT.md` 的猪圈相关决策 / 约定 / 限制同步。
+<!-- @anchor: log_012_end -->
+
+
+<!-- @anchor: log_013 -->
+# [本次] 修复猪圈九宫格字形的位置漂移（字形改为「即所在格位」绘制）
+- **问题**：`modules/pigpen.js` 的九宫格字形此前把「朝外取边」的每条边都延伸至整个字形框（上/下边写满 0→S、左/右边写满 0→S），于是右上角 C 的拐角横跨整框、其它边也漂到框边，画出来的不是该格位本来的 L 形 / 边格 / 井字——即「边发生了位置漂移」。
+- **修复（`pigpen_geometry`）**：字形改为「即该格位本身」——按 `S/3` 切出该格位的 `x0/x1/y0/y1`，只画朝外（远离画布中心）的边（角格 2 条 = L 形、边格 3 条、中心 4 条 = 井字），且每条边只落在本格位范围内，不再外延到整个字形框；加点仍取格心。叉形（每区两侧辐线，中心 → 边界）保持不变。
+- **自测**：`tmp/test-new-ciphers.js` 改为核对「A 上/左边只占左上格、C 上/右边只占右上格、E 四条边都在中央格范围内」（94 断言全绿）；`tmp/preview-pigpen.js` 与新增 `tmp/dump-svg.js` 复核字形点阵与 SVG 坐标；`tmp/test-integration.js`（48）、`tmp/check-syntax.js` 均通过。
+- **文档**：`PROJECT.md` 的猪圈渲染决策同步为「字形即格位本身、不外延整框」。
+<!-- @anchor: log_013_end -->
+
+
+
+<!-- @anchor: log_014 -->
+# [本次] 猪圈九宫格字形加 180° 朝向校正（改为「朝内取边」）
+- **问题**：上一步把九宫格字形改为「即所在格位」后外形已正确（角格 L 形 / 边格 / 中心井字），但取的是「朝外（远离画布中心）」的边，导致每个字形相对正确的猪圈字形整体**旋转了 180°**（如 C 被画成上边 + 右边，而标准应为下边 + 左边）。
+- **修复（`modules/pigpen.js` 的 `pigpen_geometry`）**：九宫格改为「朝内取边」——只画**不属于网格外框**的边（上边当 `r>0`、下边当 `r<2`、左边当 `c>0`、右边当 `c<2` 才画），等价于把整套字形绕各自格心旋转 180°。外形类别不变（角格 2 条 L 形、边格 3 条、中心 4 条、加点在格心），但朝向与标准一致：A = 下边 + 右边、C = 下边 + 左边（L 形），J–R 同理。叉形（每区两侧辐线）朝向本就正确，保持不变。
+- **自测**：`tmp/test-new-ciphers.js` 将 A / C 的几何断言改为核对「朝内取边」（A 只含下边 + 右边且不含外框上/左两边、C 只含下边 + 左边，均限于本格位）；`tmp/preview-pigpen.js` 复核点阵；`tmp/test-integration.js`、`tmp/check-syntax.js`、`tmp/check-css.js` 均通过。
+- **文档**：`PROJECT.md` 的猪圈渲染决策改写为「即所在格位 + 朝内取边（180° 校正）」。
+<!-- @anchor: log_014_end -->
+
+<!-- @anchor: log_015 -->
+# [本次] 修正猪圈叉形（X 形）映射：8 个 45° 扇形区 → 4 个 90° 区域
+- **问题**：叉形沿用 `temp-explain.txt` 的早期方案（正方形左右各 4 个 45° 扇形区，左上 S / 左中 T / 左下 W / 最左下 X，右侧 U / V / Y / Z），与标准猪圈不符。正确形态是两条对角线把正方形切成 **4 个 90° 区域**：S 开口朝上（V 形）、T 开口朝左（> 形）、U 开口朝右（< 形）、V 开口朝下（^ 形），W / X / Y / Z 为对应区域**加点**的版本。
+- **数据层（`cipher-data.js` 的 `data_pigpen`）**：第三组改为 `S` / `T` / `U` / `V` 四个区域（`pos` = top / left / right / bottom，无加点），并新增第四组 `W` / `X` / `Y` / `Z`（同区域 + `dot: true`）；文件头的猪圈说明与对应关系注释同步。
+- **模块层（`modules/pigpen.js` 的 `pigpen_geometry`）**：`X_REGIONS` 由「8 个方向」改为「4 个区域」——每区记录该区的两个角点，字形只画「中心 → 该两角」的两条对角线段（**不画正方形外框**，故四个区域分别是 V / > / < / ^ 形）；加点改为落在区域中线上（自中心朝开口方向偏移 1/3 边长 ≈ 三角形重心），取代原先「无加点 + `spokeEnd()` 辐线」的做法，`spokeEnd()` 随之移除；字形键由 `x-` + 方向名变为 `x-` + 区域名，加点追加 `d`（如 `x-top`、`x-topd`）；`describe()` 的位置名改为「朝上开口 / 朝左开口 / 朝右开口 / 朝下开口」。
+- **界面层**：猪圈输入按钮由三组改为四组（`script.js` 的 `buildPigpenButtons()`：九宫格 A–I / 加点九宫格 J–R / 叉形 S–V / 加点叉形 W–Z）；`index.html` 的猪圈输入区注释与提示文案、`style.css` 的猪圈输入区块说明同步更新。
+- **自测**：`tmp/test-new-ciphers.js` 的叉形断言全部改写（`describe`、字形键、往返编解码、四区图形互不相同、加点位置），`tmp/preview-pigpen.js` 增加第四组点阵预览，`tmp/test-integration.js` 的按钮组数断言 3 → 4 并新增 S / Z 按钮提示校验；`tmp/dump-svg.js` 逐字形核对坐标（S = 中心→左上角 + 右上角、T = 中心→左上角 + 左下角、U / V 同理；W / X / Y / Z 的点分列四条中线上）。全部自测（105 + 50 + 66 + 33 + 23 断言）与 `check-syntax.js`、`check-css.js` 通过。
+- **文档**：`PROJECT.md` 的架构（猪圈输入流、字形键说明）、关键决策（新增「叉形取中心 → 区域两角」、改写猪圈对应关系）与已知限制同步；`temp-explain.txt` 的叉形方案标注为已废弃，一切以 `cipher-data.js` 为准。
+<!-- @anchor: log_015_end -->
+
+
+<!-- @anchor: log_016 -->
+# [本次] 调整猪圈输入按钮排版（九宫格 3×3、叉形按开口方向摆十字）
+- **排版**：猪圈输入区四组字形按钮统一改用 3×3 网格（`.pigpen-glyph-buttons` 由 flex 换行改为 `display:grid`）——九宫格两组（A–I / J–R）的 9 个按钮按行优先自然落位，与字形格位一一对应；叉形两组（S–V / W–Z）的 4 个按钮由脚本按开口方向指定 `grid-row` / `grid-column`（上 = 行1 列2、左 = 行2 列1、右 = 行2 列3、下 = 行3 列2），摆成十字、中心与四角留空。
+- **脚本（`script.js` 的 `script_pigpen_input`）**：抽出 `createPigpenGlyphButton()` 生成单个字形按钮；`groupDefs` 增加 `layout` 字段（grid / cross）；叉形组按 `spec.pos` 经 `PIGPEN_CROSS_SLOTS` 定位，其余逻辑（点击追加 / 空格 / 退格 / 添加到文本）不变。
+- **样式（`style.css`）**：`css_pigpen_input` 的 `.pigpen-glyph-buttons` 改为 3×3 网格，新增 `.pigpen-layout-grid` / `.pigpen-layout-cross`；响应式补一条「网格无需 max-width」的覆盖；`index.html` 的猪圈输入提示文案与注释同步说明排版规则。
+- **自测**：`tmp/test-integration.js` 新增 8 项排版断言（两组 grid 组、A–I / J–R 行优先落位、S/T/U/V 与 W/X 的十字格位）；全套断言（105 + 60 + 66 + 33 + 23）与 `check-syntax.js`、`check-css.js` 全绿。
+- **文档**：`PROJECT.md` 的猪圈输入决策与输入流补充「按字形语义排版」说明。
+<!-- @anchor: log_016_end -->
+
+
+<!-- @anchor: log_017 -->
+# [本次] 特殊输入键盘快捷键（空格添加 / 退格）与猪圈标志换钢笔
+- **键盘快捷键（`script.js` 新增 `script_keyboard_shortcuts` 区块）**：在 `document` 上监听 `keydown`，按 `currentMode` 分派——盲文 / 旗语模式下按空格把当前选好的字母添加到文本；猪圈模式下空格追加空格、退格删除末位。事件目标为 `input` / `textarea` / `select` 或带 Ctrl / Meta / Alt 时不拦截；`preventDefault` 既避免空格滚动页面，也避免重复触发聚焦按钮的默认点击。盲文点阵的原地按键改为只处理回车，空格交给全局快捷键。
+- **界面（`index.html`）**：三处猪圈标志由「猪头 🐷」改为「钢笔 🖋️」（模式按钮 / 输入区标题 / 输出卡片图标），取 pigpen 的 pen；盲文 / 旗语 / 猪圈提示文案补充键盘操作说明（空格添加、猪圈 Space / Backspace）。
+- **自测（`tmp/test-integration.js`）**：DOM 桩新增 `document` 级事件监听支持；新增 14 项断言——document 级 keydown 已注册、猪圈空格 / 退格键、可键入控件不拦截、盲文点 1 后按空格添加 A 并清空点阵、旗语方向 4+5 后按空格添加 A 并清除选择、文本模式下空格无副作用。全套断言（105 + 74 + 66 + 33 + 23）与 `check-syntax.js`、`check-css.js` 全绿。
+- **文档**：`PROJECT.md` 的架构（新增「特殊输入键盘流」）、关键决策与已知限制同步。
+<!-- @anchor: log_017_end -->
+
+
+<!-- @anchor: log_018 -->
+# [本次] 进制转换区分「五位二进制（A1Z26）」与「七位二进制（ASCII）」
+- **模块（`modules/smart-detect.js` 的 `smart_detect_baseconv` 区块）**：`buildBaseConversion()` 重写——二进制视图由单个笼统的「二进制」拆成两个：`五位二进制（A1Z26）`（各值左补零到 5 位，值 1–26 → 字母）与 `七位二进制（ASCII）`（各值左补零到 7 位，值 32–126 → 字符）；三进制（位数对齐）视图保留。新增 `decodedChars()` 助手，按「译出字符更多者优先（并列取五位）」决定两个二进制视图的先后，使默认展示更契合输入值域；无效 token 的 chips 保持 `?`（不再被左补零）。文件头与区块说明同步。
+- **界面**：进制转换栏目内的视图按钮随之为「五位二进制（A1Z26） / 七位二进制（ASCII） / 三进制」（沿用既有并列小按钮切换机制，无新增样式）。
+- **自测（`tmp/test-smart-detect.js`）**：更新进制转换相关断言（默认视图随值域切换、5 位 / 7 位补零宽度、三进制结果、栏内三个视图按钮及其切换），断言数增至 82；全套（105 + 74 + 82 + 33 + 23）与 `check-syntax.js`、`check-css.js` 全绿。
+- **文档**：`PROJECT.md` 关键决策与已知限制同步。
+<!-- @anchor: log_018_end -->
+
+<!-- @anchor: log_019 -->
+# [本次] 修复「五位 / 七位二进制」未渲染：二进制数字显式渲染 + 进制卡片补齐两行
+- **问题定位**：上一轮把二进制按位宽拆成「五位二进制（A1Z26）」与「七位二进制（ASCII）」时，只改了智能识别「进制转换」栏目的内部视图，且结果行给的是**译出的字母**（二进制数字只在 chips 里）；主翻译区「进制」卡片则仍是笼统的「二进制 8 位」一行。两处都看不到二进制数字，用户侧表现为「五位 / 七位二进制没有渲染」，易被误判为「函数没调用 / 脚本没加载」。
+- **智能识别栏目（`modules/smart-detect.js`）**：`buildBaseConversion` 的两个二进制视图改为「结果行 = 对齐后的二进制数字」（与三进制视图口径一致），译出的字母 / 字符改放新增的 `note` 附注（如「A1Z26 字母：HELLO」）；默认视图排序由「结果串译出字符数」改为按 `bin5Letters` / `bin7Chars` 统计（结果行已是数字，不能再据其推断）；`renderItem` 新增附注行 DOM（`.smart-item-note`）并在切换视图时同步，成词判定改为「优先结果行、其次附注」以保留翻译按钮。`style.css` 的 `css_smart_detect` 增附注行样式。
+- **主翻译区进制卡片（`modules/numeral.js`）**：展示行由「二进制 8 位 / 八进制 3 位 / 十六进制 2 位」改为「五位二进制（A1Z26，字母 A=1…Z=26，非字母 `?`）/ 七位二进制（ASCII，可打印字符）/ 八进制 3 位 / 十六进制 2 位」，新增 `codeOf(ch, source)` 按行来源取值（`a1z26` 或 `ascii`），卡片说明文案与模块头注释同步。
+- **自测**：`test-new-ciphers`（116）、`test-smart-detect`（90）、`test-integration`（86）全绿，并新增「进制转换栏内 3 个视图按钮 + 二进制结果行 + 附注行」与「进制卡片两行二进制」断言；`check-syntax` / `check-css` 通过；锚点索引重建（23 文件 366 锚点）。
+- **文档**：`PROJECT.md` 的架构、关键决策与已知限制同步；顺带把 `smart-detect.js` 文件头多出的游离注释并入 intro 文档块。
+<!-- @anchor: log_019_end -->
+
+
 <!-- @anchor: update_record_anchor -->
 <!-- 追加区：后续新记录统一插入本锚点之前 -->

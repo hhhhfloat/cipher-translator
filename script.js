@@ -1,10 +1,12 @@
 // @anchor: script_intro
-// 主脚本：协调输入事件，将文本分发给五个密码模块渲染；并管理三种输入模式（文本 / 盲文 / 旗语）的切换与解码
+// 主脚本：协调输入事件，把文本分发给各密码模块渲染；并管理四种输入模式（文本 / 盲文 / 旗语 / 猪圈）的切换与解码
 /**
  * 古典密码互译器 — 主脚本
- * 协调输入事件，将文本分发给五个密码模块进行渲染。
- * 同时管理输入模式切换：文本输入 / 盲文点阵输入 / 旗语九宫格输入。
+ * 协调输入事件，把文本分发给各密码模块（盲文 / A1Z26 / 敲击码 / 旗语 / 北约音标 / 摩斯 / 猪圈 / ASCII / 进制）渲染。
+ * 同时管理输入模式切换：文本输入 / 盲文点阵输入 / 旗语九宫格输入 / 猪圈字形输入。
  */
+
+
 (function () {
     'use strict';
 
@@ -16,10 +18,11 @@
     const clearBtn = document.getElementById('clearBtn');
     const charCount = document.getElementById('charCount');
 
-    // 三个输入区域
+    // 四个输入区域
     const textInputSection = document.getElementById('textInputSection');
     const brailleInputSection = document.getElementById('brailleInputSection');
     const semaphoreInputSection = document.getElementById('semaphoreInputSection');
+    const pigpenInputSection = document.getElementById('pigpenInputSection');
 
     // 模式选择器
     const modeSelector = document.getElementById('modeSelector');
@@ -41,13 +44,25 @@
     const semaphoreClearTextBtn = document.getElementById('semaphoreClearTextBtn');
     const semaphoreOutputTextbox = document.getElementById('semaphoreOutputTextbox');
 
+    // 猪圈字形输入 DOM
+    const pigpenGlyphGroups = document.getElementById('pigpenGlyphGroups');
+    const pigpenOutputTextbox = document.getElementById('pigpenOutputTextbox');
+    const pigpenAddBtn = document.getElementById('pigpenAddBtn');
+    const pigpenSpaceBtn = document.getElementById('pigpenSpaceBtn');
+    const pigpenBackspaceBtn = document.getElementById('pigpenBackspaceBtn');
+    const pigpenClearTextBtn = document.getElementById('pigpenClearTextBtn');
+
     // 密码模块输出容器
     const containers = {
         braille:   document.getElementById('braille-output'),
         a1z26:     document.getElementById('a1z26-output'),
         tapcode:   document.getElementById('tapcode-output'),
         semaphore: document.getElementById('semaphore-output'),
-        nato:      document.getElementById('nato-output')
+        nato:      document.getElementById('nato-output'),
+        morse:     document.getElementById('morse-output'),
+        pigpen:    document.getElementById('pigpen-output'),
+        ascii:     document.getElementById('ascii-output'),
+        numeral:   document.getElementById('numeral-output')
     };
 
     // 密码模块引用（由外部脚本定义）
@@ -56,19 +71,26 @@
         a1z26:     typeof A1Z26Cipher !== 'undefined'     ? A1Z26Cipher     : null,
         tapcode:   typeof TapCodeCipher !== 'undefined'   ? TapCodeCipher   : null,
         semaphore: typeof SemaphoreCipher !== 'undefined' ? SemaphoreCipher : null,
-        nato:      typeof NATOPhoneticCipher !== 'undefined' ? NATOPhoneticCipher : null
+        nato:      typeof NATOPhoneticCipher !== 'undefined' ? NATOPhoneticCipher : null,
+        morse:     typeof MorseCipher !== 'undefined'     ? MorseCipher     : null,
+        pigpen:    typeof PigpenCipher !== 'undefined'    ? PigpenCipher    : null,
+        ascii:     typeof AsciiCipher !== 'undefined'     ? AsciiCipher     : null,
+        numeral:   typeof NumeralCipher !== 'undefined'   ? NumeralCipher   : null
     };
     // 半智能识别结果容器
     const smartDetectBody = document.getElementById('smartDetectBody');
 
 
 
+    // 翻译跳转条容器（当前输入成词/词组时显示）
+    const translateBar = document.getElementById('translateBar');
+
     // @anchor: script_dom_refs_end
 
     // @anchor: script_state
-    // 运行时状态：当前输入模式、盲文点阵与累积文本、旗语双臂选择
+    // 运行时状态：当前输入模式、盲文点阵与累积文本、旗语双臂选择、猪圈累积字形文本
     // --- 当前输入模式 ---
-    var currentMode = 'text'; // 'text' | 'braille' | 'semaphore'
+    var currentMode = 'text'; // 'text' | 'braille' | 'semaphore' | 'pigpen'
 
     // --- 盲文点阵输入状态 ---
     var brailleDotsState = [false, false, false, false, false, false];
@@ -79,13 +101,16 @@
     var semaphoreLeftArm = null;  // 左手方向索引 (0-7)，null 表示未选
     var semaphoreAccumulatedText = '';
 
+    // --- 猪圈字形输入状态 ---
+    var pigpenAccumulatedText = '';
+
     // @anchor: script_state_end
 
     // @anchor: script_mode_switch
     // 切换输入模式：高亮按钮、切换输入区显示、重置对应输入状态
     /**
      * 切换到指定输入模式
-     * @param {string} mode - 'text' | 'braille' | 'semaphore'
+     * @param {string} mode - 'text' | 'braille' | 'semaphore' | 'pigpen'
      */
     function switchMode(mode) {
         if (currentMode === mode) return;
@@ -105,12 +130,17 @@
         textInputSection.style.display = (mode === 'text') ? '' : 'none';
         brailleInputSection.style.display = (mode === 'braille') ? '' : 'none';
         semaphoreInputSection.style.display = (mode === 'semaphore') ? '' : 'none';
+        if (pigpenInputSection) {
+            pigpenInputSection.style.display = (mode === 'pigpen') ? '' : 'none';
+        }
 
         // 切换模式时重置对应输入状态
         if (mode === 'braille') {
             clearBrailleDots();
         } else if (mode === 'semaphore') {
             clearSemaphoreSelection();
+        } else if (mode === 'pigpen') {
+            clearPigpenAccumulatedText();
         }
     }
 
@@ -152,11 +182,27 @@
         updateSemaphoreOutputTextbox();
     }
 
+    // 猪圈输入：刷新翻译结果文本框与「添加到文本」按钮可用态；清空累积字形文本
+    function updatePigpenOutputTextbox() {
+        if (pigpenOutputTextbox) {
+            pigpenOutputTextbox.value = pigpenAccumulatedText;
+        }
+        if (pigpenAddBtn) {
+            pigpenAddBtn.disabled = (pigpenAccumulatedText.length === 0);
+        }
+    }
+
+    function clearPigpenAccumulatedText() {
+        pigpenAccumulatedText = '';
+        updatePigpenOutputTextbox();
+    }
+
     // @anchor: script_output_textbox_end
 
 
     // @anchor: script_braille_input
     // 盲文点阵输入：点阵状态换算 Unicode 与字母、点选切换、添加到文本与事件绑定
+    // 键盘：盲文模式下按空格即可把当前字母添加到文本（见 script_keyboard_shortcuts），回车在点阵内切换点位
     /**
      * 根据当前点阵状态计算盲文 Unicode 字符和对应字母
      * @returns {{ brailleChar: string, letter: string }}
@@ -238,8 +284,9 @@
             }
         });
 
+        // 回车在点阵内切换点位；空格由全局快捷键统一处理（把当前字母添加到文本）
         brailleDotInput.addEventListener('keydown', function (e) {
-            if (e.key === ' ' || e.key === 'Enter') {
+            if (e.key === 'Enter') {
                 e.preventDefault();
                 var dot = e.target.closest('.braille-input-dot');
                 if (dot) {
@@ -263,6 +310,7 @@
     if (brailleClearTextBtn) {
         brailleClearTextBtn.addEventListener('click', clearBrailleAccumulatedText);
     }
+
     // @anchor: script_braille_input_end
 
     // @anchor: script_semaphore_input
@@ -417,6 +465,178 @@
     }
     // @anchor: script_semaphore_input_end
 
+    // @anchor: script_pigpen_input
+    // 猪圈字形输入：按「九宫格（无点 / 加点）/ 叉形（无点 / 加点）」四组生成字形按钮，点击逐字追加；支持空格、退格与整体写入文本框
+    // 排版：九宫格按钮按 3×3 格位排列（与字形一一对应）；叉形按钮按开口方向（上 / 左 / 右 / 下）摆成十字，使按钮位置直观对应字形
+    // 生成单个字形按钮（字形取自 PigpenCipher）
+    function createPigpenGlyphButton(letter) {
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'pigpen-glyph-btn';
+        btn.setAttribute('data-letter', letter);
+        btn.title = letter + '（' + PigpenCipher.describe(letter) + '）';
+        btn.setAttribute('aria-label', '猪圈字形 ' + letter);
+
+        var glyph = PigpenCipher.createGlyph(letter, 34);
+        if (glyph) {
+            btn.appendChild(glyph);
+        } else {
+            btn.textContent = '?';
+        }
+        return btn;
+    }
+
+    // 叉形开口方向 → 3×3 网格中的 [行, 列]：上 / 左 / 右 / 下摆成十字，中心与四角留空
+    var PIGPEN_CROSS_SLOTS = { top: [1, 2], left: [2, 1], right: [2, 3], bottom: [3, 2] };
+
+    // 生成四组字形按钮（分组、字形与摆位均取自 PigpenCipher 的映射数据，未收录字形不生成按钮）
+    function buildPigpenButtons() {
+        if (!pigpenGlyphGroups) return;
+        pigpenGlyphGroups.innerHTML = '';
+        if (typeof PigpenCipher === 'undefined' || !PigpenCipher) return;
+
+        var letters = PigpenCipher.LETTERS || [];
+        var groupDefs = [
+            { label: '九宫格 · A–I', shape: 'grid', dot: false, layout: 'grid' },
+            { label: '加点九宫格 · J–R', shape: 'grid', dot: true, layout: 'grid' },
+            { label: '叉形 · S–V', shape: 'x', dot: false, layout: 'cross' },
+            { label: '加点叉形 · W–Z', shape: 'x', dot: true, layout: 'cross' }
+        ];
+
+        groupDefs.forEach(function (def) {
+            var groupEl = document.createElement('div');
+            groupEl.className = 'pigpen-glyph-group';
+
+            var titleEl = document.createElement('span');
+            titleEl.className = 'pigpen-group-title';
+            titleEl.textContent = def.label;
+            groupEl.appendChild(titleEl);
+
+            var btnRow = document.createElement('div');
+            btnRow.className = 'pigpen-glyph-buttons pigpen-layout-' + def.layout;
+
+            letters.forEach(function (letter) {
+                var spec = PigpenCipher.spec(letter);
+                if (!spec || spec.shape !== def.shape || !!spec.dot !== def.dot) return;
+
+                var btn = createPigpenGlyphButton(letter);
+
+                // 九宫格：按字母顺序（行优先）自然落成 3×3；叉形：按开口方向定位到十字格
+                if (def.layout === 'cross') {
+                    var slot = PIGPEN_CROSS_SLOTS[spec.pos];
+                    if (slot) {
+                        btn.style.gridRow = String(slot[0]);
+                        btn.style.gridColumn = String(slot[1]);
+                    }
+                }
+
+                btnRow.appendChild(btn);
+            });
+
+            groupEl.appendChild(btnRow);
+            pigpenGlyphGroups.appendChild(groupEl);
+        });
+    }
+
+    // 点击字形按钮 → 对应字母追加到翻译结果
+    function handlePigpenGlyphClick(e) {
+        var btn = (e.target && e.target.closest) ? e.target.closest('.pigpen-glyph-btn') : null;
+        if (!btn) return;
+        var letter = btn.getAttribute('data-letter');
+        if (!letter) return;
+        pigpenAccumulatedText += letter;
+        updatePigpenOutputTextbox();
+    }
+
+    // 追加空格（猪圈字形不含空格，单独提供）
+    function addPigpenSpace() {
+        pigpenAccumulatedText += ' ';
+        updatePigpenOutputTextbox();
+    }
+
+    // 退格：删除翻译结果末尾的一个字形
+    function pigpenBackspace() {
+        if (!pigpenAccumulatedText) return;
+        pigpenAccumulatedText = pigpenAccumulatedText.slice(0, -1);
+        updatePigpenOutputTextbox();
+    }
+
+    // 把猪圈翻译结果整体写入文本输入框
+    function addPigpenToText() {
+        if (!pigpenAccumulatedText) return;
+        appendToTextInput(pigpenAccumulatedText);
+        pigpenAccumulatedText = '';
+        updatePigpenOutputTextbox();
+    }
+
+    // --- 猪圈字形事件绑定 ---
+    if (pigpenGlyphGroups) {
+        pigpenGlyphGroups.addEventListener('click', handlePigpenGlyphClick);
+    }
+    if (pigpenAddBtn) {
+        pigpenAddBtn.addEventListener('click', addPigpenToText);
+    }
+    if (pigpenSpaceBtn) {
+        pigpenSpaceBtn.addEventListener('click', addPigpenSpace);
+    }
+    if (pigpenBackspaceBtn) {
+        pigpenBackspaceBtn.addEventListener('click', pigpenBackspace);
+    }
+    if (pigpenClearTextBtn) {
+        pigpenClearTextBtn.addEventListener('click', clearPigpenAccumulatedText);
+    }
+
+    // @anchor: script_pigpen_input_end
+
+    // @anchor: script_keyboard_shortcuts
+    // 键盘快捷键：盲文 / 旗语模式下按空格把当前字母添加到文本；猪圈模式下空格加空格、退格删末位
+    // 仅在对应输入模式生效，且不拦截可键入控件（input / textarea / select）中的按键
+    /**
+     * 判断事件目标是否为可键入控件（避免影响其正常输入）
+     * @param {Element} target
+     * @returns {boolean}
+     */
+    function isTypingTarget(target) {
+        if (!target || !target.tagName) return false;
+        var tag = String(target.tagName).toUpperCase();
+        return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
+    }
+
+    /**
+     * 全局键盘处理：把空格 / 退格映射为当前特殊输入模式的操作
+     * @param {KeyboardEvent} e
+     */
+    function handleSpecialKeydown(e) {
+        if (e.ctrlKey || e.metaKey || e.altKey) return;
+        if (isTypingTarget(e.target)) return;
+        var isSpace = e.key === ' ' || e.key === 'Spacebar' || e.code === 'Space';
+
+        if (currentMode === 'braille') {
+            if (isSpace) {
+                e.preventDefault();
+                addBrailleToText();
+            }
+        } else if (currentMode === 'semaphore') {
+            if (isSpace) {
+                e.preventDefault();
+                addSemaphoreToText();
+            }
+        } else if (currentMode === 'pigpen') {
+            if (isSpace) {
+                e.preventDefault();
+                addPigpenSpace();
+            } else if (e.key === 'Backspace') {
+                e.preventDefault();
+                pigpenBackspace();
+            }
+        }
+    }
+
+    document.addEventListener('keydown', handleSpecialKeydown);
+    // @anchor: script_keyboard_shortcuts_end
+
+
+
     // @anchor: script_append_text
     // 通用文本追加：把单个字母写入文本框并派发 input 事件（不设长度上限）
     /**
@@ -431,7 +651,7 @@
     // @anchor: script_append_text_end
 
     // @anchor: script_render_ciphers
-    // 将文本分发给五个密码模块渲染到各自容器
+    // 把文本分发给各密码模块渲染到各自容器
     function updateAllCiphers(text) {
         var trimmed = text.trim();
 
@@ -450,7 +670,20 @@
         if (modules.nato) {
             modules.nato.render(containers.nato, trimmed);
         }
+        if (modules.morse) {
+            modules.morse.render(containers.morse, trimmed);
+        }
+        if (modules.pigpen) {
+            modules.pigpen.render(containers.pigpen, trimmed);
+        }
+        if (modules.ascii) {
+            modules.ascii.render(containers.ascii, trimmed);
+        }
+        if (modules.numeral) {
+            modules.numeral.render(containers.numeral, trimmed);
+        }
     }
+
     // @anchor: script_render_ciphers_end
 
     // @anchor: script_smart_detect
@@ -463,9 +696,30 @@
 
     // @anchor: script_smart_detect_end
 
+    // @anchor: script_translate
+    // 翻译跳转条：当前输入成词/词组时，在文本输入区显示跳转百度翻译的小按钮
+    function updateTranslateBar(text) {
+        if (!translateBar) { return; }
+
+        var existing = translateBar.querySelector('.translate-jump');
+        if (existing) { translateBar.removeChild(existing); }
+
+        var trimmed = (text || '').trim();
+        if (typeof TranslateLink === 'undefined' || !TranslateLink || !trimmed
+            || !TranslateLink.isWordPhrase(trimmed, smartWordDict)) {
+            translateBar.style.display = 'none';
+            return;
+        }
+
+        translateBar.appendChild(TranslateLink.createButton(trimmed, '🌐 百度翻译'));
+        translateBar.style.display = '';
+    }
+
+    // @anchor: script_translate_end
+
 
     // @anchor: script_word_dict
-    // 按需加载分层词典（resources/words-tiered.txt，每 5k 词一档）供智能识别的「A1Z26 分段匹配」使用；
+    // 按需加载分层词典（resources/words-tiered.txt，每 5k 词一档）供智能识别的「A1Z26 分段匹配」与翻译跳转判断使用；
     // 分层词典加载失败则回退到 yawl-all.txt（单档），全部失败时静默降级
     var smartWordDict = null;          // WordFinder.parseTieredDictionary 的分层结果 [{tier, words:Set}]
     var smartWordDictFailed = false;   // 加载失败标记（如 file:// 打开）
@@ -487,12 +741,14 @@
             .then(function (text) {
                 smartWordDict = WordFinder.parseTieredDictionary(text, 2, 64);
                 updateSmartDetection(textInput.value);   // 词典就绪后重算当前输入
+                updateTranslateBar(textInput.value);
             })
             .catch(function () {
                 // 回退：整部 YAWL 词表当作单档（无频率分层）
                 return fetchText('resources/yawl-all.txt').then(function (text) {
                     smartWordDict = [WordFinder.parseDictionary(text, 2, 64)];
                     updateSmartDetection(textInput.value);
+                    updateTranslateBar(textInput.value);
                 });
             })
             .catch(function () {
@@ -504,12 +760,13 @@
 
 
     // @anchor: script_input_events
-    // 文本输入事件：更新字符计数与清空，触发全部密码刷新与半智能识别（不设长度上限）
+    // 文本输入事件：更新字符计数与清空，触发全部密码刷新、半智能识别与翻译跳转条（不设长度上限）
     function onInputChange() {
         var value = textInput.value;
         charCount.textContent = value.length + ' 字符';
         updateAllCiphers(value);
         updateSmartDetection(value);
+        updateTranslateBar(value);
     }
 
     function onClear() {
@@ -517,6 +774,7 @@
         charCount.textContent = '0 字符';
         updateAllCiphers('');
         updateSmartDetection('');
+        updateTranslateBar('');
         textInput.focus();
     }
 
@@ -527,15 +785,18 @@
     // @anchor: script_input_events_end
 
     // @anchor: script_init
-    // 初始化：默认文本模式、按需加载词典、刷新各输入区，并延迟载入示例 "HELLO"
+    // 初始化：默认文本模式、生成猪圈字形按钮、按需加载词典、刷新各输入区，并延迟载入示例 "HELLO"
     // 默认显示文本输入模式
     switchMode('text');
     updateAllCiphers('');
     updateSmartDetection('');
+    updateTranslateBar('');
     updateBrailleInputUI();
     updateSemaphoreUI();
+    buildPigpenButtons();
+    updatePigpenOutputTextbox();
 
-    // 加载词典（供智能识别的 A1Z26 分段匹配）
+    // 加载词典（供智能识别的 A1Z26 分段匹配与翻译跳转判断）
     loadSmartWordDict();
 
     // 加载后自动展示示例
@@ -545,6 +806,7 @@
             charCount.textContent = '5 字符';
             updateAllCiphers('HELLO');
             updateSmartDetection('HELLO');
+            updateTranslateBar('HELLO');
         }
     }, 300);
 

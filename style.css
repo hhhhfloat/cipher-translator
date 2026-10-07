@@ -463,6 +463,23 @@ body {
     letter-spacing: 0.05em;
 }
 
+/* --- 附注行：结果行之外的补充信息（如进制转换的二进制视图附示译出的字母 / 字符） --- */
+.smart-item-note {
+    font-size: 0.92rem;
+    color: var(--text-muted);
+    letter-spacing: 0.06em;
+    word-break: break-all;
+    margin: -8px 0 12px;
+}
+
+.smart-item-note.smart-num {
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+}
+
+.smart-item-note[hidden] {
+    display: none;
+}
+
 /* @anchor: css_smart_detect_end */
 
 
@@ -800,6 +817,170 @@ body {
     color: #5a4e3e;
 }
 /* @anchor: css_semaphore_input_end */
+
+/* @anchor: css_pigpen_input */
+/* 猪圈字形输入区：四组字形按钮（九宫格 无点 / 加点按 3×3 格位排列、叉形 无点 / 加点按开口方向摆成十字） + 翻译结果与操作按钮 */
+.pigpen-input-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 6px;
+}
+
+.pigpen-input-icon {
+    font-size: 30px;
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-sm);
+    background: #f6ece2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pigpen-input-header h2 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #3a3028;
+}
+
+.pigpen-input-hint {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-bottom: 18px;
+}
+
+.pigpen-input-area {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 28px;
+    flex-wrap: wrap;
+}
+
+.pigpen-glyph-groups {
+    display: grid;
+    grid-template-columns: repeat(2, auto);
+    gap: 14px;
+}
+
+.pigpen-glyph-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 10px;
+    background: #faf8f5;
+    border: 1px solid #e8e0d4;
+    border-radius: var(--radius-sm);
+}
+
+.pigpen-group-title {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-align: center;
+}
+
+/* 字形按钮容器：统一用 3×3 网格，让字形按格位 / 方向就位 */
+.pigpen-glyph-buttons {
+    display: grid;
+    grid-template-columns: repeat(3, auto);
+    grid-template-rows: repeat(3, auto);
+    gap: 6px;
+    justify-items: center;
+    align-items: center;
+}
+
+/* 九宫格：按钮按行优先落位，与字形格位一一对应 */
+.pigpen-layout-grid {
+    grid-template-rows: repeat(3, auto);
+}
+
+/* 叉形：上 / 左 / 右 / 下摆成十字（按钮由脚本按开口方向指定 grid-row / grid-column），中心与四角留空 */
+.pigpen-layout-cross {
+    grid-template-rows: repeat(3, auto);
+}
+
+.pigpen-glyph-btn {
+    width: 46px;
+    height: 46px;
+    padding: 4px;
+    border: 2px solid #e0d9cc;
+    border-radius: 10px;
+    background: #fffdfa;
+    color: #6b4f31;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.pigpen-glyph-btn:hover {
+    background: #f4ecdf;
+    border-color: #c8bfb0;
+    transform: scale(1.06);
+}
+
+.pigpen-glyph-btn:active {
+    transform: scale(0.94);
+}
+
+.pigpen-side {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+}
+
+.pigpen-input-actions {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    max-width: 260px;
+}
+
+.pigpen-add-btn,
+.pigpen-clear-btn {
+    padding: 10px 16px;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.pigpen-add-btn {
+    background: #b5763c;
+    color: #fff;
+}
+
+.pigpen-add-btn:hover:not(:disabled) {
+    background: #c9873f;
+}
+
+.pigpen-add-btn:disabled {
+    background: #e6dcd0;
+    color: #b8ab9a;
+    cursor: not-allowed;
+}
+
+.pigpen-clear-btn {
+    background: #f0ebe0;
+    color: #7a6e5e;
+}
+
+.pigpen-clear-btn:hover {
+    background: #e4dcd0;
+    color: #5a4e3e;
+}
+
+/* @anchor: css_pigpen_input_end */
+
 
 /* @anchor: css_cards */
 /* 密码面板网格、卡片外壳与占位提示 */
@@ -1160,6 +1341,279 @@ body {
 }
 /* @anchor: css_nato_view_end */
 
+/* @anchor: css_morse_view */
+/* 摩斯电码卡片样式：点划结果行 + 逐字符点划 chips */
+.morse-code-row {
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #44618a;
+    letter-spacing: 0.14em;
+    margin-bottom: 14px;
+    word-break: break-all;
+}
+
+.morse-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: flex-start;
+}
+
+.morse-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: #eef2f9;
+    border: 1px solid #d6e0f0;
+    border-radius: var(--radius-sm);
+    padding: 3px 8px;
+    font-size: 0.8rem;
+}
+
+.morse-chip-char {
+    font-weight: 700;
+    color: #3f5f8a;
+    font-family: var(--font-serif);
+}
+
+.morse-chip-code {
+    font-family: Consolas, "Courier New", monospace;
+    color: #64748b;
+    letter-spacing: 0.1em;
+}
+
+.morse-chip-space,
+.morse-chip-unknown {
+    color: var(--text-muted);
+    background: transparent;
+    border-style: dashed;
+}
+
+.morse-more {
+    align-self: center;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.morse-icon { background: #e8eef8; }
+/* @anchor: css_morse_view_end */
+
+/* @anchor: css_pigpen_view */
+/* 猪圈密码卡片样式：逐字符字形 SVG + 字母标签 */
+.pigpen-figures-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: flex-end;
+}
+
+.pigpen-figure-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 6px;
+    background: #f7f3ee;
+    border: 1px solid #e6ded2;
+    border-radius: var(--radius-sm);
+}
+
+.pigpen-glyph-svg {
+    display: block;
+    color: #6b4f31;
+}
+
+.pigpen-glyph-svg line {
+    stroke: currentColor;
+    fill: none;
+}
+
+.pigpen-glyph-svg circle {
+    fill: currentColor;
+}
+
+.pigpen-char-label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #8a6a45;
+    font-family: var(--font-serif);
+}
+
+.pigpen-space,
+.pigpen-unknown {
+    font-size: 0.85rem;
+    color: #bbb;
+    background: transparent;
+    border-style: dashed;
+    padding: 22px 10px;
+}
+
+.pigpen-more {
+    align-self: center;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.pigpen-icon { background: #f6ece2; }
+/* @anchor: css_pigpen_view_end */
+
+/* @anchor: css_ascii_view */
+/* ASCII 码卡片样式：十进制码值行 + 逐字符「字符 → 码值」卡片 */
+.ascii-code-row {
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #2f7d6a;
+    letter-spacing: 0.08em;
+    margin-bottom: 14px;
+    word-break: break-all;
+}
+
+.ascii-cards-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: flex-start;
+}
+
+.ascii-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: #eaf6f2;
+    border: 1px solid #d2e9e2;
+    border-radius: var(--radius-sm);
+    padding: 8px 12px;
+    min-width: 46px;
+}
+
+.ascii-char {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #2f7d6a;
+    font-family: var(--font-serif);
+}
+
+.ascii-code {
+    font-size: 0.8rem;
+    color: #6b9c90;
+    font-weight: 600;
+    font-family: Consolas, "Courier New", monospace;
+}
+
+.ascii-other,
+.ascii-more {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.ascii-other {
+    padding: 12px 8px;
+    background: transparent;
+    border-style: dashed;
+}
+
+.ascii-icon { background: #e6f4f0; }
+/* @anchor: css_ascii_view_end */
+
+/* @anchor: css_numeral_view */
+/* 进制卡片样式：每行「进制标签 + 左补零对齐后的码值」 */
+.numeral-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.numeral-row {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    background: #f4f1fa;
+    border: 1px solid #e2dcf2;
+    border-radius: var(--radius-sm);
+    padding: 6px 10px;
+    overflow-x: auto;
+}
+
+.numeral-label {
+    flex: 0 0 auto;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #6a5aa0;
+    white-space: nowrap;
+}
+
+.numeral-values {
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 0.95rem;
+    color: #4d4266;
+    letter-spacing: 0.08em;
+    white-space: pre;
+}
+
+.numeral-hint {
+    margin-top: 12px;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+}
+
+.numeral-icon { background: #ece7fa; }
+/* @anchor: css_numeral_view_end */
+
+
+/* @anchor: css_translate */
+/* 翻译跳转：成词/词组的输入或识别结果旁的小按钮，点击跳转百度翻译查看中文含义 */
+.translate-jump {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-family: var(--font-sans);
+    font-size: 0.72rem;
+    font-weight: 600;
+    line-height: 1.5;
+    color: #2f6fb0;
+    background: #eaf2fb;
+    border: 1px solid #cfe0f3;
+    border-radius: 999px;
+    padding: 1px 10px;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background 0.15s, border-color 0.15s;
+}
+
+.translate-jump:hover {
+    background: #dbeafb;
+    border-color: #a9caf0;
+}
+
+/* 文本输入区：当前输入成词/词组时的翻译跳转条 */
+.translate-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    max-width: 580px;
+    margin: 10px auto 0;
+    padding: 7px 12px;
+    background: #f3f8ff;
+    border: 1px solid #dce8f7;
+    border-radius: var(--radius-sm);
+}
+
+.translate-bar-hint {
+    font-size: 0.78rem;
+    color: #6b7c90;
+}
+
+/* 智能识别栏目标题栏内的翻译按钮（靠右） */
+.smart-item-action {
+    margin-left: auto;
+}
+
+/* @anchor: css_translate_end */
+
+
 /* @anchor: css_footer */
 /* 页脚 */
 /* --- 底部 --- */
@@ -1295,6 +1749,46 @@ body {
     .special-input-textbox {
         width: 180px;
         font-size: 0.95rem;
+    }
+}
+
+
+/* --- 新增卡片与猪圈输入区的窄屏适配 --- */
+@media (max-width: 860px) {
+    .pigpen-glyph-buttons {
+        max-width: 180px;
+    }
+
+    .numeral-values {
+        font-size: 0.85rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .pigpen-input-area {
+        flex-direction: column;
+        gap: 14px;
+    }
+
+    .pigpen-glyph-groups {
+        grid-template-columns: 1fr;
+    }
+
+    .pigpen-glyph-btn {
+        width: 40px;
+        height: 40px;
+    }
+
+    .pigpen-figures-row {
+        gap: 6px;
+    }
+}
+
+
+/* 猪圈字形按钮为网格布局，无需宽度限制（覆盖早期 flex 换行时代的 max-width） */
+@media (max-width: 860px) {
+    .pigpen-glyph-buttons {
+        max-width: none;
     }
 }
 

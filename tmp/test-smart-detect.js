@@ -2,6 +2,8 @@
 const path = require('path');
 const fs = require('fs');
 const base = path.join(__dirname, '..', 'modules');
+global.CipherData = require(path.join(__dirname, '..', 'cipher-data.js'));
+global.MorseCipher = require(path.join(base, 'morse.js'));
 global.CantorCipher = require(path.join(base, 'cantor.js'));
 global.TapCodeCipher = require(path.join(base, 'tapcode.js'));
 const WordFinder = require(path.join(base, 'word-finder.js'));
@@ -61,14 +63,20 @@ eq(SmartDetect.detect('CAFE').length, 0, '纯十六进制字母(无数字)不误
 eq(SmartDetect.detect('DEAD BEEF').length, 0, 'DEAD BEEF 不误判');
 eq(SmartDetect.detect('').length, 0, '空输入不识别');
 
-// ===== 2. A1Z26 + 进制转换 =====
+// ===== 2. A1Z26 + 进制转换（5 位 A1Z26 / 7 位 ASCII / 三进制） =====
 let r = SmartDetect.detect('8 5 12 12 15');
 eq(keys(r), 'a1z26,baseconv', '8 5 12 12 15 → A1Z26 + 进制转换');
 eq(r[0].result, 'HELLO', 'A1Z26 = HELLO');
-eq(r[1].views.length, 3, '进制转换含 3 个视图');
-eq(r[1].views[0].result, '1000 0101 1100 1100 1111', '二进制位数对齐');
-eq(r[1].views[1].result, '022 012 110 110 120', '三进制位数对齐');
-eq(r[1].views[0].chips[0].to, '1000', 'chips 二进制对齐');
+eq(r[1].views.length, 3, '进制转换含 3 个视图（五位 / 七位 / 三进制）');
+eq(r[1].views[0].label, '五位二进制（A1Z26）', 'A1Z26 值域 → 默认视图为五位二进制（A1Z26）');
+eq(r[1].views[0].result, '01000 00101 01100 01100 01111', '五位视图结果行 = 对齐后的 5 位二进制');
+eq(r[1].views[0].note, 'A1Z26 字母：HELLO', '五位视图附注给出译出的字母');
+eq(r[1].views[0].chips[0].to, '01000', '五位二进制左补零到 5 位');
+eq(r[1].views[1].label, '七位二进制（ASCII）', '第二视图为七位二进制（ASCII）');
+eq(r[1].views[1].result, '0001000 0000101 0001100 0001100 0001111', 'A1Z26 值域下七位视图仍给出对齐的 7 位二进制');
+eq(r[1].views[1].note, '', 'A1Z26 值域下七位视图无附注（值 < 32 不可译）');
+eq(r[1].views[2].label, '三进制', '第三视图为三进制');
+eq(r[1].views[2].result, '022 012 110 110 120', '三进制位数对齐');
 
 // ===== 3. 五位 / 七位二进制 =====
 r = SmartDetect.detect('01000 00101 01100 01100 01111');
@@ -77,11 +85,18 @@ eq(r[0].result, 'HELLO', '5 位二进制 = HELLO');
 r = SmartDetect.detect('1001000 1000101 1001100 1001100 1001111');
 eq(keys(r), 'binary7,baseconv', '7 位二进制识别');
 eq(r[0].result, 'HELLO', '7 位二进制 = HELLO');
+let bc = pick(r, 'baseconv');
+eq(bc.views[0].label, '七位二进制（ASCII）', 'ASCII 值域 → 默认视图为七位二进制（ASCII）');
+eq(bc.views[0].result, '1001000 1000101 1001100 1001100 1001111', '七位视图结果行 = 对齐后的 7 位二进制');
+eq(bc.views[0].note, 'ASCII 字符：HELLO', '七位视图附注给出译出的字符');
+eq(bc.views[1].label, '五位二进制（A1Z26）', '另一视图为五位二进制（A1Z26）');
+eq(bc.views[1].note, '', 'ASCII 值域下五位视图无附注（值 > 26 不可译）');
 
 // ===== 4. 十六进制 / 康托展开 =====
 r = SmartDetect.detect('8 5 c c f');
 eq(keys(r), 'hex,baseconv', '十六进制识别');
 eq(r[0].result, 'HELLO', 'hex 8 5 c c f = HELLO');
+eq(pick(r, 'baseconv').views[0].label, '五位二进制（A1Z26）', '十六进制小值 → 默认五位视图');
 r = SmartDetect.detect('1234 1243 4321');
 eq(keys(r), 'cantor', '康托展开独占');
 eq(r[0].result, 'ABX', '康托 = ABX');
@@ -90,6 +105,11 @@ eq(r[0].result, 'ABX', '康托 = ABX');
 r = SmartDetect.detect('72 69 76 76 79');
 eq(keys(r), 'ascii,baseconv', 'ASCII 识别');
 eq(r[0].result, 'HELLO', 'ASCII = HELLO');
+bc = pick(r, 'baseconv');
+eq(bc.views[0].label, '七位二进制（ASCII）', 'ASCII 输入 → 进制转换默认七位视图');
+eq(bc.views[0].chips[0].to, '1001000', '七位二进制左补零到 7 位');
+eq(bc.views[0].result, '1001000 1000101 1001100 1001100 1001111', 'ASCII 输入 → 七位视图结果行');
+eq(bc.views[0].note, 'ASCII 字符：HELLO', 'ASCII 输入 → 七位视图附注给出字符');
 eq(SmartDetect.detect('65 1 1')[0].key, 'a1z26', '65 1 1 未超 2/3 → A1Z26');
 eq(SmartDetect.detect('65 65 1')[0].key, 'a1z26', '恰好 2/3 不算超 → A1Z26');
 eq(SmartDetect.detect('65 65 65')[0].key, 'ascii', '全部 ≥65 → ASCII');
@@ -103,7 +123,7 @@ eq(keys(r), 'a1z26,ternary,baseconv', '三进制追加');
 eq(r[1].result, 'EFH', '三进制 = EFH');
 r = SmartDetect.detect('.... . .-.. .-.. ---');
 eq(keys(r), 'morse', '摩斯独占');
-eq(r[0].result, 'HELLO', '摩斯 = HELLO');
+eq(r[0].result, 'HELLO', '摩斯 = HELLO（表来自摩斯模块 / 数据层）');
 
 // ===== 7. 无空格数字串 → A1Z26 递归分段匹配词典词 =====
 r = SmartDetect.detect('85121215', dict);
@@ -181,13 +201,24 @@ eq(findOneByClass(c, 'smart-item-result')._text, 'INSIDE', '默认展示 INSIDE'
 viewTabs.children[1].click();
 eq(findOneByClass(c, 'smart-item-result')._text, 'IN SIDE', '点击后展示 IN SIDE');
 
-// 顶层按钮点击切换
+// 顶层按钮点击切换 → 进制转换（栏内含 5 位 / 7 位 / 三进制三个视图按钮）
 c = new El('div');
 SmartDetect.render(c, '8 5 12 12 15');
 tabs = findExact(c, 'smart-tabs');
 tabs.children[1].click();
 ok(tabs.children[1].classList.contains('is-active') && !tabs.children[0].classList.contains('is-active'), '点击后按钮激活态切换');
-eq(findOneByClass(c, 'smart-item-result')._text, '1000 0101 1100 1100 1111', '切换后展示进制转换结果');
+const bcTabs = findExact(c, 'smart-tabs smart-view-tabs');
+ok(bcTabs !== null && bcTabs.children.length === 3, '进制转换栏内 3 个视图按钮');
+eq(bcTabs && bcTabs.children[0]._text, '五位二进制（A1Z26）', '栏内首视图按钮 = 五位二进制（A1Z26）');
+eq(bcTabs && bcTabs.children[1]._text, '七位二进制（ASCII）', '栏内次视图按钮 = 七位二进制（ASCII）');
+eq(bcTabs && bcTabs.children[2]._text, '三进制', '栏内第三视图按钮 = 三进制');
+eq(findOneByClass(c, 'smart-item-result')._text, '01000 00101 01100 01100 01111', '默认展示五位二进制（A1Z26）的结果行');
+eq(findOneByClass(c, 'smart-item-note')._text, 'A1Z26 字母：HELLO', '附注行给出译出的字母');
+bcTabs.children[1].click();
+eq(findOneByClass(c, 'smart-item-result')._text, '0001000 0000101 0001100 0001100 0001111', '切到七位二进制（ASCII）视图（结果行）');
+eq(findOneByClass(c, 'smart-item-note')._text, '', '该视图无附注（附注行清空）');
+bcTabs.children[2].click();
+eq(findOneByClass(c, 'smart-item-result')._text, '022 012 110 110 120', '切到三进制视图');
 
 // ===== 汇总 =====
 console.log('\n===== smart-detect 自测 =====');
