@@ -102,7 +102,7 @@
     "preview" : "<!-- @anchor: caesar_scripts -->"
   }, {
     "id" : "caesar_scripts_end",
-    "line" : 75,
+    "line" : 77,
     "preview" : "<!-- @anchor: caesar_scripts_end -->"
   } ],
   "caesar.js" : [ {
@@ -139,63 +139,63 @@
     "preview" : "// @anchor: caesar_word_dict"
   }, {
     "id" : "caesar_word_dict_end",
-    "line" : 91,
+    "line" : 142,
     "preview" : "// @anchor: caesar_word_dict_end"
   }, {
     "id" : "caesar_find_words",
-    "line" : 93,
+    "line" : 144,
     "preview" : "// @anchor: caesar_find_words"
   }, {
     "id" : "caesar_find_words_end",
-    "line" : 104,
+    "line" : 155,
     "preview" : "// @anchor: caesar_find_words_end"
   }, {
     "id" : "caesar_render",
-    "line" : 106,
+    "line" : 157,
     "preview" : "// @anchor: caesar_render"
   }, {
     "id" : "caesar_row_tools",
-    "line" : 219,
+    "line" : 270,
     "preview" : "// @anchor: caesar_row_tools"
   }, {
     "id" : "caesar_row_tools_end",
-    "line" : 227,
+    "line" : 278,
     "preview" : "// @anchor: caesar_row_tools_end"
   }, {
     "id" : "caesar_render_end",
-    "line" : 268,
+    "line" : 319,
     "preview" : "// @anchor: caesar_render_end"
   }, {
     "id" : "caesar_input_handler",
-    "line" : 270,
+    "line" : 321,
     "preview" : "// @anchor: caesar_input_handler"
   }, {
     "id" : "caesar_input_handler_end",
-    "line" : 291,
+    "line" : 342,
     "preview" : "// @anchor: caesar_input_handler_end"
   }, {
     "id" : "caesar_event_bindings",
-    "line" : 293,
+    "line" : 344,
     "preview" : "// @anchor: caesar_event_bindings"
   }, {
     "id" : "caesar_event_bindings_end",
-    "line" : 297,
+    "line" : 348,
     "preview" : "// @anchor: caesar_event_bindings_end"
   }, {
     "id" : "caesar_word_toggle",
-    "line" : 299,
+    "line" : 350,
     "preview" : "// @anchor: caesar_word_toggle"
   }, {
     "id" : "caesar_word_toggle_end",
-    "line" : 309,
+    "line" : 360,
     "preview" : "// @anchor: caesar_word_toggle_end"
   }, {
     "id" : "caesar_init",
-    "line" : 311,
+    "line" : 362,
     "preview" : "// @anchor: caesar_init"
   }, {
     "id" : "caesar_init_end",
-    "line" : 324,
+    "line" : 375,
     "preview" : "// @anchor: caesar_init_end"
   } ],
   "cipher-data.js" : [ {
@@ -325,7 +325,7 @@
     "preview" : "<!-- @anchor: html_scripts -->"
   }, {
     "id" : "html_scripts_end",
-    "line" : 389,
+    "line" : 391,
     "preview" : "<!-- @anchor: html_scripts_end -->"
   } ],
   "modules/a1z26.js" : [ {
@@ -953,6 +953,27 @@
     "line" : 110,
     "preview" : "// @anchor: word_finder_export_end"
   } ],
+  "modules/word-seed.js" : [ {
+    "id" : "word_seed_intro",
+    "line" : 1,
+    "preview" : "// @anchor: word_seed_intro"
+  }, {
+    "id" : "word_seed_words",
+    "line" : 12,
+    "preview" : "// @anchor: word_seed_words"
+  }, {
+    "id" : "word_seed_words_end",
+    "line" : 15,
+    "preview" : "// @anchor: word_seed_words_end"
+  }, {
+    "id" : "word_seed_export",
+    "line" : 17,
+    "preview" : "// @anchor: word_seed_export"
+  }, {
+    "id" : "word_seed_export_end",
+    "line" : 28,
+    "preview" : "// @anchor: word_seed_export_end"
+  } ],
   "PROJECT.md" : [ {
     "id" : "project_md_intro",
     "line" : 1,
@@ -971,39 +992,39 @@
     "preview" : "<!-- @anchor: proj_arch -->"
   }, {
     "id" : "proj_arch_end",
-    "line" : 47,
+    "line" : 44,
     "preview" : "<!-- @anchor: proj_arch_end -->"
   }, {
     "id" : "proj_decisions",
-    "line" : 49,
+    "line" : 46,
     "preview" : "<!-- @anchor: proj_decisions -->"
   }, {
     "id" : "proj_decisions_end",
-    "line" : 92,
+    "line" : 95,
     "preview" : "<!-- @anchor: proj_decisions_end -->"
   }, {
     "id" : "proj_conventions",
-    "line" : 94,
+    "line" : 97,
     "preview" : "<!-- @anchor: proj_conventions -->"
   }, {
     "id" : "proj_conventions_end",
-    "line" : 107,
+    "line" : 110,
     "preview" : "<!-- @anchor: proj_conventions_end -->"
   }, {
     "id" : "proj_limits",
-    "line" : 109,
+    "line" : 112,
     "preview" : "<!-- @anchor: proj_limits -->"
   }, {
     "id" : "proj_limits_end",
-    "line" : 139,
+    "line" : 136,
     "preview" : "<!-- @anchor: proj_limits_end -->"
   }, {
     "id" : "proj_start",
-    "line" : 141,
+    "line" : 138,
     "preview" : "<!-- @anchor: proj_start -->"
   }, {
     "id" : "proj_start_end",
-    "line" : 146,
+    "line" : 149,
     "preview" : "<!-- @anchor: proj_start_end -->"
   } ],
   "script.js" : [ {
@@ -1072,63 +1093,63 @@
     "preview" : "// @anchor: script_keyboard_shortcuts"
   }, {
     "id" : "script_keyboard_shortcuts_end",
-    "line" : 636,
+    "line" : 645,
     "preview" : "// @anchor: script_keyboard_shortcuts_end"
   }, {
     "id" : "script_append_text",
-    "line" : 640,
+    "line" : 649,
     "preview" : "// @anchor: script_append_text"
   }, {
     "id" : "script_append_text_end",
-    "line" : 651,
+    "line" : 660,
     "preview" : "// @anchor: script_append_text_end"
   }, {
     "id" : "script_render_ciphers",
-    "line" : 653,
+    "line" : 662,
     "preview" : "// @anchor: script_render_ciphers"
   }, {
     "id" : "script_render_ciphers_end",
-    "line" : 687,
+    "line" : 686,
     "preview" : "// @anchor: script_render_ciphers_end"
   }, {
     "id" : "script_smart_detect",
-    "line" : 689,
+    "line" : 688,
     "preview" : "// @anchor: script_smart_detect"
   }, {
     "id" : "script_smart_detect_end",
-    "line" : 697,
+    "line" : 701,
     "preview" : "// @anchor: script_smart_detect_end"
   }, {
     "id" : "script_translate",
-    "line" : 699,
+    "line" : 703,
     "preview" : "// @anchor: script_translate"
   }, {
     "id" : "script_translate_end",
-    "line" : 718,
+    "line" : 728,
     "preview" : "// @anchor: script_translate_end"
   }, {
     "id" : "script_word_dict",
-    "line" : 721,
+    "line" : 731,
     "preview" : "// @anchor: script_word_dict"
   }, {
     "id" : "script_word_dict_end",
-    "line" : 759,
+    "line" : 810,
     "preview" : "// @anchor: script_word_dict_end"
   }, {
     "id" : "script_input_events",
-    "line" : 762,
+    "line" : 813,
     "preview" : "// @anchor: script_input_events"
   }, {
     "id" : "script_input_events_end",
-    "line" : 785,
+    "line" : 836,
     "preview" : "// @anchor: script_input_events_end"
   }, {
     "id" : "script_init",
-    "line" : 787,
+    "line" : 838,
     "preview" : "// @anchor: script_init"
   }, {
     "id" : "script_init_end",
-    "line" : 813,
+    "line" : 864,
     "preview" : "// @anchor: script_init_end"
   } ],
   "style.css" : [ {
@@ -1304,6 +1325,27 @@
     "line" : 1795,
     "preview" : "/* @anchor: css_responsive_end */"
   } ],
+  "tmp/audit-static.js" : [ {
+    "id" : "audit_static_intro",
+    "line" : 1,
+    "preview" : "// @anchor: audit_static_intro"
+  }, {
+    "id" : "audit_static_scan",
+    "line" : 19,
+    "preview" : "// @anchor: audit_static_scan"
+  }, {
+    "id" : "audit_static_scan_end",
+    "line" : 114,
+    "preview" : "// @anchor: audit_static_scan_end"
+  }, {
+    "id" : "audit_static_report",
+    "line" : 121,
+    "preview" : "// @anchor: audit_static_report"
+  }, {
+    "id" : "audit_static_report_end",
+    "line" : 159,
+    "preview" : "// @anchor: audit_static_report_end"
+  } ],
   "UPDATE.md" : [ {
     "id" : "cipher_update_intro",
     "line" : 1,
@@ -1445,8 +1487,16 @@
     "line" : 185,
     "preview" : "<!-- @anchor: log_019_end -->"
   }, {
-    "id" : "update_record_anchor",
+    "id" : "log_020",
     "line" : 188,
+    "preview" : "<!-- @anchor: log_020 -->"
+  }, {
+    "id" : "log_020_end",
+    "line" : 197,
+    "preview" : "<!-- @anchor: log_020_end -->"
+  }, {
+    "id" : "update_record_anchor",
+    "line" : 199,
     "preview" : "<!-- @anchor: update_record_anchor -->"
   } ]
 }

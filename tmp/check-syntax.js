@@ -6,8 +6,8 @@ const files = [
     'modules/braille.js', 'modules/a1z26.js', 'modules/tapcode.js',
     'modules/semaphore.js', 'modules/nato-phonetic.js', 'modules/morse.js',
     'modules/pigpen.js', 'modules/ascii.js', 'modules/numeral.js',
-    'modules/cantor.js', 'modules/word-finder.js', 'modules/translate-link.js',
-    'modules/smart-detect.js'
+    'modules/cantor.js', 'modules/word-finder.js', 'modules/word-seed.js',
+    'modules/translate-link.js', 'modules/smart-detect.js'
 ];
 let fail = 0;
 files.forEach(function (f) {

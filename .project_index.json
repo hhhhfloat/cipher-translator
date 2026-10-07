@@ -115,10 +115,10 @@
   }, {
     "id" : "caesar_scripts",
     "line" : 70,
-    "desc" : "脚本加载：词典词查找工具 → 翻译跳转工具 → 凯撒移位主体逻辑"
+    "desc" : "脚本加载：词典词查找工具 → 内置词种子（词典不可用时的降级）→ 翻译跳转工具 → 凯撒移位主体逻辑"
   }, {
     "id" : "caesar_scripts_end",
-    "line" : 75,
+    "line" : 77,
     "desc" : ""
   } ],
   "caesar.js" : [ {
@@ -155,79 +155,79 @@
     "id" : "caesar_shift_text_end",
     "line" : 60,
     "desc" : "",
-    "symbol" : "loadWordDict"
+    "symbol" : "applyWordDict"
   }, {
     "id" : "caesar_word_dict",
     "line" : 62,
-    "desc" : "隐藏玩法的词典：异步把 resources/yawl-all.txt 读成小写词集合；读取失败（如 file:// 打开）则静默禁用",
-    "symbol" : "loadWordDict"
+    "desc" : "隐藏玩法的词典：按可靠性逐级回退——分层词典 resources/words-tiered.txt（约 152 KB）→ 整部词表",
+    "symbol" : "applyWordDict"
   }, {
     "id" : "caesar_word_dict_end",
-    "line" : 91,
+    "line" : 142,
     "desc" : "",
     "symbol" : "findWordRanges"
   }, {
     "id" : "caesar_find_words",
-    "line" : 93,
+    "line" : 144,
     "desc" : "取当前文本中命中的词典词区间；得分低于置信阈值（短词噪声）一律视为未命中",
     "symbol" : "findWordRanges"
   }, {
     "id" : "caesar_find_words_end",
-    "line" : 104,
+    "line" : 155,
     "desc" : "",
     "symbol" : "escapeHtml"
   }, {
     "id" : "caesar_render",
-    "line" : 106,
+    "line" : 157,
     "desc" : "渲染全部 25 种移位结果：命中词典词的行高亮并置顶（按命中得分降序），空输入显示占位提示",
     "symbol" : "escapeHtml"
   }, {
     "id" : "caesar_row_tools",
-    "line" : 219,
+    "line" : 270,
     "desc" : "命中词典词（成词/词组）的移位结果行附加百度翻译跳转按钮",
     "symbol" : "updateWordHint"
   }, {
     "id" : "caesar_row_tools_end",
-    "line" : 227,
+    "line" : 278,
     "desc" : "",
     "symbol" : "updateWordHint"
   }, {
     "id" : "caesar_render_end",
-    "line" : 268,
+    "line" : 319,
     "desc" : "",
     "symbol" : "onInputChange"
   }, {
     "id" : "caesar_input_handler",
-    "line" : 270,
+    "line" : 321,
     "desc" : "输入处理：更新字符计数（含 60 上限）并刷新结果；清空复位",
     "symbol" : "onInputChange"
   }, {
     "id" : "caesar_input_handler_end",
-    "line" : 291,
+    "line" : 342,
     "desc" : ""
   }, {
     "id" : "caesar_event_bindings",
-    "line" : 293,
+    "line" : 344,
     "desc" : "绑定输入与清空事件"
   }, {
     "id" : "caesar_event_bindings_end",
-    "line" : 297,
+    "line" : 348,
     "desc" : ""
   }, {
     "id" : "caesar_word_toggle",
-    "line" : 299,
+    "line" : 350,
     "desc" : "隐藏开关：双击页面标题切换「词典词标记」，标题 title 属性给出暗号提示"
   }, {
     "id" : "caesar_word_toggle_end",
-    "line" : 309,
+    "line" : 360,
     "desc" : ""
   }, {
     "id" : "caesar_init",
-    "line" : 311,
+    "line" : 362,
     "desc" : "初始化：空渲染 + 异步加载隐藏玩法词典 + 延迟载入示例 \"HELLO\""
   }, {
     "id" : "caesar_init_end",
-    "line" : 324,
+    "line" : 375,
     "desc" : ""
   } ],
   "cipher-data.js" : [ {
@@ -354,10 +354,10 @@
   }, {
     "id" : "html_scripts",
     "line" : 372,
-    "desc" : "脚本加载顺序：数据文件 → 各密码模块（盲文 / 摩斯 / 猪圈 / ASCII / 进制等）→ 词典工具 → 翻译跳转工具 → 半智能识别 → 主脚本"
+    "desc" : "脚本加载顺序：数据文件 → 各密码模块（盲文 / 摩斯 / 猪圈 / ASCII / 进制等）→ 词典工具与内置词种子 → 翻译跳转工具 → 半智能识别 → 主脚本；顺序不可打乱"
   }, {
     "id" : "html_scripts_end",
-    "line" : 389,
+    "line" : 391,
     "desc" : ""
   } ],
   "modules/a1z26.js" : [ {
@@ -1110,6 +1110,27 @@
     "line" : 110,
     "desc" : ""
   } ],
+  "modules/word-seed.js" : [ {
+    "id" : "word_seed_intro",
+    "line" : 1,
+    "desc" : "内置高频词种子：降级词典，供静态托管缺少 resources 词表或 file:// 打开时使用，保证分段成词与成词判定仍可用"
+  }, {
+    "id" : "word_seed_words",
+    "line" : 12,
+    "desc" : "高频词种子（空格分隔以压缩体积，词长 1–14，升序）"
+  }, {
+    "id" : "word_seed_words_end",
+    "line" : 15,
+    "desc" : ""
+  }, {
+    "id" : "word_seed_export",
+    "line" : 17,
+    "desc" : "暴露接口：words() 词数组、set() 词集合、tiers() 单档分层词典（与 WordFinder 解析结果同构）"
+  }, {
+    "id" : "word_seed_export_end",
+    "line" : 28,
+    "desc" : ""
+  } ],
   "PROJECT.md" : [ {
     "id" : "project_md_intro",
     "line" : 1,
@@ -1125,42 +1146,42 @@
   }, {
     "id" : "proj_arch",
     "line" : 11,
-    "desc" : "# 整体架构"
+    "desc" : ""
   }, {
     "id" : "proj_arch_end",
-    "line" : 47,
+    "line" : 44,
     "desc" : ""
   }, {
     "id" : "proj_decisions",
-    "line" : 49,
+    "line" : 46,
     "desc" : "# 关键决策"
   }, {
     "id" : "proj_decisions_end",
-    "line" : 92,
+    "line" : 95,
     "desc" : ""
   }, {
     "id" : "proj_conventions",
-    "line" : 94,
-    "desc" : "# 规范约定"
+    "line" : 97,
+    "desc" : ""
   }, {
     "id" : "proj_conventions_end",
-    "line" : 107,
+    "line" : 110,
     "desc" : ""
   }, {
     "id" : "proj_limits",
-    "line" : 109,
-    "desc" : "# 已知限制与坑"
+    "line" : 112,
+    "desc" : ""
   }, {
     "id" : "proj_limits_end",
-    "line" : 139,
+    "line" : 136,
     "desc" : ""
   }, {
     "id" : "proj_start",
-    "line" : 141,
+    "line" : 138,
     "desc" : "# 启动方式"
   }, {
     "id" : "proj_start_end",
-    "line" : 146,
+    "line" : 149,
     "desc" : ""
   } ],
   "script.js" : [ {
@@ -1237,83 +1258,83 @@
     "id" : "script_pigpen_input_end",
     "line" : 589,
     "desc" : "",
-    "symbol" : "isTypingTarget"
+    "symbol" : "isEditableTarget"
   }, {
     "id" : "script_keyboard_shortcuts",
     "line" : 591,
-    "desc" : "键盘快捷键：盲文 / 旗语模式下按空格把当前字母添加到文本；猪圈模式下空格加空格、退格删末位",
-    "symbol" : "isTypingTarget"
+    "desc" : "键盘快捷键：盲文 / 旗语模式下按空格把当前字母添加到文本；猪圈模式下空格加空格、退格删末位。",
+    "symbol" : "isEditableTarget"
   }, {
     "id" : "script_keyboard_shortcuts_end",
-    "line" : 636,
+    "line" : 645,
     "desc" : "",
     "symbol" : "appendToTextInput"
   }, {
     "id" : "script_append_text",
-    "line" : 640,
+    "line" : 649,
     "desc" : "通用文本追加：把单个字母写入文本框并派发 input 事件（不设长度上限）",
     "symbol" : "appendToTextInput"
   }, {
     "id" : "script_append_text_end",
-    "line" : 651,
+    "line" : 660,
     "desc" : "",
-    "symbol" : "updateAllCiphers"
+    "symbol" : "renderCard"
   }, {
     "id" : "script_render_ciphers",
-    "line" : 653,
-    "desc" : "把文本分发给各密码模块渲染到各自容器",
-    "symbol" : "updateAllCiphers"
+    "line" : 662,
+    "desc" : "把文本分发给各密码模块渲染到各自容器；逐模块隔离异常——任一模块出错只让自身卡片显示占位，",
+    "symbol" : "renderCard"
   }, {
     "id" : "script_render_ciphers_end",
-    "line" : 687,
+    "line" : 686,
     "desc" : "",
     "symbol" : "updateSmartDetection"
   }, {
     "id" : "script_smart_detect",
-    "line" : 689,
-    "desc" : "半智能识别：把文本与已加载的词典交给 SmartDetect，渲染可识别的编码栏目",
+    "line" : 688,
+    "desc" : "半智能识别：把文本与已加载的词典交给 SmartDetect 渲染栏目；异常只记录日志，不影响其它卡片",
     "symbol" : "updateSmartDetection"
   }, {
     "id" : "script_smart_detect_end",
-    "line" : 697,
+    "line" : 701,
     "desc" : "",
     "symbol" : "updateTranslateBar"
   }, {
     "id" : "script_translate",
-    "line" : 699,
-    "desc" : "翻译跳转条：当前输入成词/词组时，在文本输入区显示跳转百度翻译的小按钮",
+    "line" : 703,
+    "desc" : "翻译跳转条：当前输入成词/词组时，在文本输入区显示跳转百度翻译的小按钮；判定或渲染异常时静默隐藏",
     "symbol" : "updateTranslateBar"
   }, {
     "id" : "script_translate_end",
-    "line" : 718,
+    "line" : 728,
     "desc" : "",
-    "symbol" : "loadSmartWordDict"
+    "symbol" : "countDictWords"
   }, {
     "id" : "script_word_dict",
-    "line" : 721,
-    "desc" : "按需加载分层词典（resources/words-tiered.txt，每 5k 词一档）供智能识别的「A1Z26 分段匹配」与翻译跳转判断使用；",
-    "symbol" : "loadSmartWordDict"
+    "line" : 731,
+    "desc" : "按需加载词典（供「A1Z26 分段匹配」与翻译跳转的成词判定使用），按可靠性逐级回退：",
+    "symbol" : "countDictWords"
   }, {
     "id" : "script_word_dict_end",
-    "line" : 759,
+    "line" : 810,
     "desc" : "",
     "symbol" : "onInputChange"
   }, {
     "id" : "script_input_events",
-    "line" : 762,
+    "line" : 813,
     "desc" : "文本输入事件：更新字符计数与清空，触发全部密码刷新、半智能识别与翻译跳转条（不设长度上限）",
     "symbol" : "onInputChange"
   }, {
     "id" : "script_input_events_end",
-    "line" : 785,
+    "line" : 836,
     "desc" : ""
   }, {
     "id" : "script_init",
-    "line" : 787,
+    "line" : 838,
     "desc" : "初始化：默认文本模式、生成猪圈字形按钮、按需加载词典、刷新各输入区，并延迟载入示例 \"HELLO\""
   }, {
     "id" : "script_init_end",
-    "line" : 813,
+    "line" : 864,
     "desc" : ""
   } ],
   "style.css" : [ {
@@ -1531,6 +1552,29 @@
     "line" : 1795,
     "desc" : ""
   } ],
+  "tmp/audit-static.js" : [ {
+    "id" : "audit_static_intro",
+    "line" : 1,
+    "desc" : "静态托管（GitHub Pages）体检工具：扫描本地引用 / 脚本顺序 / 缓存策略 / 全局依赖 / 素材体积等「挂上去才失效」的隐患",
+    "symbol" : "checkPath"
+  }, {
+    "id" : "audit_static_scan",
+    "line" : 19,
+    "desc" : "逐文件扫描：收集问题与备注",
+    "symbol" : "checkPath"
+  }, {
+    "id" : "audit_static_scan_end",
+    "line" : 114,
+    "desc" : ""
+  }, {
+    "id" : "audit_static_report",
+    "line" : 121,
+    "desc" : "汇总输出：依赖定义的全局、素材体积、.nojekyll 提示与问题清单"
+  }, {
+    "id" : "audit_static_report_end",
+    "line" : 159,
+    "desc" : ""
+  } ],
   "UPDATE.md" : [ {
     "id" : "cipher_update_intro",
     "line" : 1,
@@ -1672,8 +1716,16 @@
     "line" : 185,
     "desc" : ""
   }, {
-    "id" : "update_record_anchor",
+    "id" : "log_020",
     "line" : 188,
+    "desc" : "[本次] 静态托管健壮性（词典三级回退 + 内置词种子 + 卡片隔离）与空格快捷键冲突修复"
+  }, {
+    "id" : "log_020_end",
+    "line" : 197,
+    "desc" : ""
+  }, {
+    "id" : "update_record_anchor",
+    "line" : 199,
     "desc" : "追加区：后续新记录统一插入本锚点之前"
   } ]
 }

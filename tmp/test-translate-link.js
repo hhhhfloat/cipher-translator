@@ -1,4 +1,5 @@
 // tmp/test-translate-link.js — 「成词/词组 → 百度翻译跳转」自测（Node，含 DOM 桩）
+// 说明：与浏览器一致地加载 WordFinder / WordSeed / TranslateLink；凯撒页用真实分层词典做假 fetch
 const path = require('path');
 const fs = require('fs');
 const base = path.join(__dirname, '..', 'modules');
@@ -42,6 +43,7 @@ global.document = {
 };
 
 global.WordFinder = require(path.join(base, 'word-finder.js'));
+global.WordSeed = require(path.join(base, 'word-seed.js'));
 global.TranslateLink = require(path.join(base, 'translate-link.js'));
 global.CipherData = require(path.join(__dirname, '..', 'cipher-data.js'));
 global.MorseCipher = require(path.join(base, 'morse.js'));
@@ -83,6 +85,7 @@ eq(TranslateLink.isWordPhrase('HELLO WORLD', null), true, '无词典：启发式
 eq(TranslateLink.isWordPhrase('123 456', null), false, '无词典：纯数字不算词');
 eq(TranslateLink.isWordPhrase('12 13 14', new Set(['hello'])), false, '词典无命中 → false');
 eq(TranslateLink.isWordPhrase('', dict), false, '空串 → false');
+eq(TranslateLink.isWordPhrase('HELLO WORLD', WordSeed.tiers()), true, '内置词种子（单档分层）也可判词');
 
 // ===== 3. createButton / attach =====
 const btn = TranslateLink.createButton('HELLO', '🌐 翻译');
@@ -127,17 +130,18 @@ action = findByClass(c, 'smart-item-action');
 jump = action && findByClass(action, 'translate-jump');
 ok(!!jump, '无词典时按启发式仍给出翻译按钮');
 
-// ===== 5. 凯撒页结果行翻译按钮（DOM 桩 + 假词典） =====
-const FAKE_WORDS = 'attack\ndaun\nhello\nworld\nnight\n';
-global.fetch = function () {
-    return Promise.resolve({ ok: true, text: function () { return Promise.resolve(FAKE_WORDS); } });
+// ===== 5. 凯撒页结果行翻译按钮（DOM 桩 + 假 fetch 返回真实分层词典） =====
+const fetchLog = [];
+global.fetch = function (url, opts) {
+    fetchLog.push({ url: String(url), cache: opts && opts.cache });
+    return Promise.resolve({ ok: true, text: function () { return Promise.resolve(dictText); } });
 };
 require(path.join(__dirname, '..', 'caesar.js'));
 
 const sleep = function (ms) { return new Promise(function (r) { setTimeout(r, ms); }); };
 
 (async function () {
-    await sleep(20);   // 等假词典异步加载完成
+    await sleep(20);   // 等词典异步加载完成
 
     const textInput = registry['textInput'];
     const resultsBody = registry['resultsBody'];
@@ -165,6 +169,9 @@ const sleep = function (ms) { return new Promise(function (r) { setTimeout(r, ms
     ok(decodeURIComponent(jumpEls[0].href).indexOf('ATTACK AT DAWN') !== -1,
         '置顶命中行为 ATTACK AT DAWN，实际: ' + decodeURIComponent(jumpEls[0].href));
     eq(cleanHas, false, '未命中词典词的行不显示翻译按钮');
+    ok(fetchLog.length > 0 && fetchLog[0].url.indexOf('words-tiered') !== -1,
+        '凯撒页优先请求体积更小的分层词典（实际 ' + (fetchLog[0] && fetchLog[0].url) + '）');
+    ok(fetchLog.every(function (f) { return f.cache === 'no-cache'; }), '凯撒页词典请求使用 cache: no-cache');
 
     console.log('\n===== translate-link 自测 =====');
     console.log('PASS: ' + pass + '  FAIL: ' + fail);

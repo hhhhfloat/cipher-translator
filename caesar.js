@@ -60,34 +60,85 @@
     // @anchor: caesar_shift_text_end
 
     // @anchor: caesar_word_dict
-    // 隐藏玩法的词典：异步把 resources/yawl-all.txt 读成小写词集合；读取失败（如 file:// 打开）则静默禁用
+    // 隐藏玩法的词典：按可靠性逐级回退——分层词典 resources/words-tiered.txt（约 152 KB）→ 整部词表
+    // resources/yawl-all.txt（约 2.6 MB，体积大、首次加载慢，仅作备份）→ 内置词种子 WordSeed（离线可用）。
+    // fetch 用 no-cache 重新校验，避免静态托管更新词表后浏览器仍返回 force-cache 的旧副本。
     var MIN_WORD_LEN = 3;          // 少于 3 个字母不参与匹配，减少噪声
     var MAX_WORD_LEN = 24;         // 单个词的最大匹配长度
     var wordDict = null;           // Set<string>：词典词集合
     var wordDictLoaded = false;    // 词典是否可用
     var wordDictFailed = false;    // 词典加载是否失败（用于给出降级提示）
     var wordMarkEnabled = true;    // 隐藏开关：双击页面标题可切换
+    var MIN_DICT_WORDS = 100;      // 词数过小视为无效内容（例如托管返回的错误页）
+
+    var wordDictSources = [
+        { url: 'resources/words-tiered.txt', tiered: true },
+        { url: 'resources/yawl-all.txt',     tiered: false }
+    ];
+
+    function applyWordDict(set) {
+        wordDict = set;
+        wordDictLoaded = set.size > 0;
+        wordDictFailed = !wordDictLoaded;
+        refreshResults();
+    }
+
+    // 把分层词表解析结果合并为单个词集合（长度不达标的词直接丢弃）
+    function flattenTiers(tiers) {
+        var set = new Set();
+        tiers.forEach(function (t) {
+            t.words.forEach(function (w) {
+                if (w.length >= MIN_WORD_LEN && w.length <= MAX_WORD_LEN) { set.add(w); }
+            });
+        });
+        return set;
+    }
+
+    function fetchDictText(url) {
+        return fetch(url, { cache: 'no-cache' }).then(function (resp) {
+            if (!resp.ok) { throw new Error('HTTP ' + resp.status); }
+            return resp.text();
+        });
+    }
+
+    function useSeedDict() {
+        if (typeof WordSeed !== 'undefined' && WordSeed && typeof WordSeed.set === 'function') {
+            var set = new Set();
+            WordSeed.set().forEach(function (w) {
+                if (w.length >= MIN_WORD_LEN && w.length <= MAX_WORD_LEN) { set.add(w); }
+            });
+            if (set.size >= MIN_DICT_WORDS) { applyWordDict(set); return; }
+        }
+        wordDictFailed = true;
+        refreshResults();
+    }
 
     function loadWordDict() {
-        if (typeof WordFinder === 'undefined' || typeof fetch !== 'function') {
-            wordDictFailed = true;
+        if (typeof fetch !== 'function' || typeof WordFinder === 'undefined') {
+            useSeedDict();
             return;
         }
-        fetch('resources/yawl-all.txt', { cache: 'force-cache' })
-            .then(function (resp) {
-                if (!resp.ok) { throw new Error('HTTP ' + resp.status); }
-                return resp.text();
-            })
-            .then(function (text) {
-                wordDict = WordFinder.parseDictionary(text, MIN_WORD_LEN, MAX_WORD_LEN);
-                wordDictLoaded = true;
-                refreshResults();
-            })
-            .catch(function () {
-                wordDictFailed = true;
-                refreshResults();
+
+        var i = 0;
+        function tryNext() {
+            if (i >= wordDictSources.length) {
+                useSeedDict();
+                return;
+            }
+            var cand = wordDictSources[i++];
+            fetchDictText(cand.url).then(function (text) {
+                var set = cand.tiered
+                    ? flattenTiers(WordFinder.parseTieredDictionary(text, MIN_WORD_LEN, MAX_WORD_LEN))
+                    : WordFinder.parseDictionary(text, MIN_WORD_LEN, MAX_WORD_LEN);
+                if (set.size < MIN_DICT_WORDS) { throw new Error('词典内容无效'); }
+                applyWordDict(set);
+            }).catch(function () {
+                tryNext();
             });
+        }
+        tryNext();
     }
+
     // @anchor: caesar_word_dict_end
 
     // @anchor: caesar_find_words

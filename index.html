@@ -370,7 +370,7 @@
     </footer>
 
     <!-- @anchor: html_scripts -->
-    <!-- 脚本加载顺序：数据文件 → 各密码模块（盲文 / 摩斯 / 猪圈 / ASCII / 进制等）→ 词典工具 → 翻译跳转工具 → 半智能识别 → 主脚本 -->
+    <!-- 脚本加载顺序：数据文件 → 各密码模块（盲文 / 摩斯 / 猪圈 / ASCII / 进制等）→ 词典工具与内置词种子 → 翻译跳转工具 → 半智能识别 → 主脚本；顺序不可打乱 -->
     <script src="cipher-data.js"></script>
     <script src="modules/braille.js"></script>
     <script src="modules/a1z26.js"></script>
@@ -383,9 +383,11 @@
     <script src="modules/numeral.js"></script>
     <script src="modules/cantor.js"></script>
     <script src="modules/word-finder.js"></script>
+    <script src="modules/word-seed.js"></script>
     <script src="modules/translate-link.js"></script>
     <script src="modules/smart-detect.js"></script>
     <script src="script.js"></script>
+
     <!-- @anchor: html_scripts_end -->
 </body>
 </html>

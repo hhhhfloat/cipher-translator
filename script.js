@@ -589,17 +589,24 @@
     // @anchor: script_pigpen_input_end
 
     // @anchor: script_keyboard_shortcuts
-    // 键盘快捷键：盲文 / 旗语模式下按空格把当前字母添加到文本；猪圈模式下空格加空格、退格删末位
-    // 仅在对应输入模式生效，且不拦截可键入控件（input / textarea / select）中的按键
+    // 键盘快捷键：盲文 / 旗语模式下按空格把当前字母添加到文本；猪圈模式下空格加空格、退格删末位。
+    // 采用「捕获阶段 + preventDefault」：既阻止浏览器把空格当作滚动 / 翻页的默认行为，又避免重复触发
+    // 聚焦按钮的默认点击；只在事件目标是「真正可编辑的控件」时放行按键（只读的结果框不算，
+    // 否则用户点过结果框后再按空格只会滚动页面而不触发快捷键）。
     /**
-     * 判断事件目标是否为可键入控件（避免影响其正常输入）
+     * 判断事件目标是否为可编辑控件（需要放行按键）
      * @param {Element} target
      * @returns {boolean}
      */
-    function isTypingTarget(target) {
+    function isEditableTarget(target) {
         if (!target || !target.tagName) return false;
+        if (target.isContentEditable) return true;
         var tag = String(target.tagName).toUpperCase();
-        return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
+        if (tag !== 'INPUT' && tag !== 'TEXTAREA' && tag !== 'SELECT') return false;
+        if (target.disabled || target.readOnly) return false;
+        // 非文本模式下，共享文本框已隐藏，不应再视为可编辑目标
+        if (target === textInput && currentMode !== 'text') return false;
+        return true;
     }
 
     /**
@@ -608,7 +615,7 @@
      */
     function handleSpecialKeydown(e) {
         if (e.ctrlKey || e.metaKey || e.altKey) return;
-        if (isTypingTarget(e.target)) return;
+        if (isEditableTarget(e.target)) return;
         var isSpace = e.key === ' ' || e.key === 'Spacebar' || e.code === 'Space';
 
         if (currentMode === 'braille') {
@@ -632,7 +639,9 @@
         }
     }
 
-    document.addEventListener('keydown', handleSpecialKeydown);
+    // 捕获阶段注册：早于其它监听与浏览器默认行为，确保空格不会滚动页面
+    document.addEventListener('keydown', handleSpecialKeydown, true);
+
     // @anchor: script_keyboard_shortcuts_end
 
 
@@ -651,109 +660,151 @@
     // @anchor: script_append_text_end
 
     // @anchor: script_render_ciphers
-    // 把文本分发给各密码模块渲染到各自容器
+    // 把文本分发给各密码模块渲染到各自容器；逐模块隔离异常——任一模块出错只让自身卡片显示占位，
+    // 不会中断后续模块，避免出现「部分卡片空白 / 无法加载」的连锁失败
+    function renderCard(name, text) {
+        var mod = modules[name];
+        var container = containers[name];
+        if (!mod || !container || typeof mod.render !== 'function') { return; }
+        try {
+            mod.render(container, text);
+        } catch (err) {
+            if (typeof console !== 'undefined' && console.error) {
+                console.error('卡片渲染失败：' + name, err);
+            }
+            container.innerHTML = '<p class="placeholder">该卡片渲染失败（' + name + '）</p>';
+        }
+    }
+
     function updateAllCiphers(text) {
         var trimmed = text.trim();
-
-        if (modules.braille) {
-            modules.braille.render(containers.braille, trimmed);
-        }
-        if (modules.a1z26) {
-            modules.a1z26.render(containers.a1z26, trimmed);
-        }
-        if (modules.tapcode) {
-            modules.tapcode.render(containers.tapcode, trimmed);
-        }
-        if (modules.semaphore) {
-            modules.semaphore.render(containers.semaphore, trimmed);
-        }
-        if (modules.nato) {
-            modules.nato.render(containers.nato, trimmed);
-        }
-        if (modules.morse) {
-            modules.morse.render(containers.morse, trimmed);
-        }
-        if (modules.pigpen) {
-            modules.pigpen.render(containers.pigpen, trimmed);
-        }
-        if (modules.ascii) {
-            modules.ascii.render(containers.ascii, trimmed);
-        }
-        if (modules.numeral) {
-            modules.numeral.render(containers.numeral, trimmed);
-        }
+        Object.keys(modules).forEach(function (name) {
+            renderCard(name, trimmed);
+        });
     }
 
     // @anchor: script_render_ciphers_end
 
     // @anchor: script_smart_detect
-    // 半智能识别：把文本与已加载的词典交给 SmartDetect，渲染可识别的编码栏目
+    // 半智能识别：把文本与已加载的词典交给 SmartDetect 渲染栏目；异常只记录日志，不影响其它卡片
     function updateSmartDetection(text) {
-        if (typeof SmartDetect !== 'undefined') {
+        if (typeof SmartDetect === 'undefined' || !smartDetectBody) { return; }
+        try {
             SmartDetect.render(smartDetectBody, text, smartWordDict);
+        } catch (err) {
+            if (typeof console !== 'undefined' && console.error) {
+                console.error('智能识别渲染失败', err);
+            }
         }
     }
 
     // @anchor: script_smart_detect_end
 
     // @anchor: script_translate
-    // 翻译跳转条：当前输入成词/词组时，在文本输入区显示跳转百度翻译的小按钮
+    // 翻译跳转条：当前输入成词/词组时，在文本输入区显示跳转百度翻译的小按钮；判定或渲染异常时静默隐藏
     function updateTranslateBar(text) {
         if (!translateBar) { return; }
+        try {
+            var existing = translateBar.querySelector('.translate-jump');
+            if (existing) { translateBar.removeChild(existing); }
 
-        var existing = translateBar.querySelector('.translate-jump');
-        if (existing) { translateBar.removeChild(existing); }
+            var trimmed = (text || '').trim();
+            if (typeof TranslateLink === 'undefined' || !TranslateLink || !trimmed
+                || !TranslateLink.isWordPhrase(trimmed, smartWordDict)) {
+                translateBar.style.display = 'none';
+                return;
+            }
 
-        var trimmed = (text || '').trim();
-        if (typeof TranslateLink === 'undefined' || !TranslateLink || !trimmed
-            || !TranslateLink.isWordPhrase(trimmed, smartWordDict)) {
+            translateBar.appendChild(TranslateLink.createButton(trimmed, '🌐 百度翻译'));
+            translateBar.style.display = '';
+        } catch (err) {
+            if (typeof console !== 'undefined' && console.error) {
+                console.error('翻译跳转条渲染失败', err);
+            }
             translateBar.style.display = 'none';
-            return;
         }
-
-        translateBar.appendChild(TranslateLink.createButton(trimmed, '🌐 百度翻译'));
-        translateBar.style.display = '';
     }
 
     // @anchor: script_translate_end
 
 
     // @anchor: script_word_dict
-    // 按需加载分层词典（resources/words-tiered.txt，每 5k 词一档）供智能识别的「A1Z26 分段匹配」与翻译跳转判断使用；
-    // 分层词典加载失败则回退到 yawl-all.txt（单档），全部失败时静默降级
-    var smartWordDict = null;          // WordFinder.parseTieredDictionary 的分层结果 [{tier, words:Set}]
-    var smartWordDictFailed = false;   // 加载失败标记（如 file:// 打开）
+    // 按需加载词典（供「A1Z26 分段匹配」与翻译跳转的成词判定使用），按可靠性逐级回退：
+    // 分层词典 resources/words-tiered.txt → 整部词表 resources/yawl-all.txt → 内置词种子 WordSeed（离线可用）；
+    // 全部失败才静默降级（不显示分段栏目）。fetch 用 no-cache 重新校验——若沿用 force-cache，静态托管
+    // 更新词表后浏览器可能长期返回旧副本，表现为「新词表 / 新功能没加载」。
+    var smartWordDict = null;          // WordFinder 词典结构（分层数组或单档 Set）
+    var smartWordDictSource = '';      // 'tiered' | 'yawl' | 'seed' | ''
+    var smartWordDictFailed = false;   // 是否彻底不可用（连内置种子都缺失）
+    var MIN_DICT_WORDS = 100;          // 词数过小视为无效内容（例如托管返回的 HTML 错误页）
+
+    var smartDictSources = [
+        { url: 'resources/words-tiered.txt', tiered: true,  source: 'tiered' },
+        { url: 'resources/yawl-all.txt',     tiered: false, source: 'yawl' }
+    ];
+
+    // 统计词典词数（兼容单档 Set 与分层数组两种结构）
+    function countDictWords(dict) {
+        var n = 0;
+        var tiers = Array.isArray(dict) ? dict : [dict];
+        tiers.forEach(function (t) {
+            var words = (t && t.words) ? t.words : t;
+            if (words && typeof words.size === 'number') { n += words.size; }
+        });
+        return n;
+    }
+
+    function applySmartWordDict(dict, source) {
+        smartWordDict = dict;
+        smartWordDictSource = source;
+        smartWordDictFailed = false;
+        updateSmartDetection(textInput.value);   // 词典就绪后重算当前输入
+        updateTranslateBar(textInput.value);
+    }
+
+    // 最后一档回退：内置高频词种子（约 9 KB），保证离线 / 资源缺失时分段与成词判定仍可用
+    function applySeedWordDict() {
+        if (typeof WordSeed !== 'undefined' && WordSeed && typeof WordSeed.tiers === 'function') {
+            var tiers = WordSeed.tiers();
+            if (countDictWords(tiers) >= MIN_DICT_WORDS) {
+                applySmartWordDict(tiers, 'seed');
+                return;
+            }
+        }
+        smartWordDictFailed = true;
+    }
+
+    function fetchText(url) {
+        return fetch(url, { cache: 'no-cache' }).then(function (resp) {
+            if (!resp.ok) { throw new Error('HTTP ' + resp.status); }
+            return resp.text();
+        });
+    }
 
     function loadSmartWordDict() {
-        if (typeof WordFinder === 'undefined' || typeof fetch !== 'function') {
-            smartWordDictFailed = true;
+        if (typeof fetch !== 'function' || typeof WordFinder === 'undefined') {
+            applySeedWordDict();
             return;
         }
 
-        function fetchText(url) {
-            return fetch(url, { cache: 'force-cache' }).then(function (resp) {
-                if (!resp.ok) { throw new Error('HTTP ' + resp.status); }
-                return resp.text();
+        var i = 0;
+        function tryNext() {
+            if (i >= smartDictSources.length) {
+                applySeedWordDict();
+                return;
+            }
+            var cand = smartDictSources[i++];
+            fetchText(cand.url).then(function (text) {
+                var dict = cand.tiered
+                    ? WordFinder.parseTieredDictionary(text, 2, 64)
+                    : [WordFinder.parseDictionary(text, 2, 64)];
+                if (countDictWords(dict) < MIN_DICT_WORDS) { throw new Error('词典内容无效'); }
+                applySmartWordDict(dict, cand.source);
+            }).catch(function () {
+                tryNext();
             });
         }
-
-        fetchText('resources/words-tiered.txt')
-            .then(function (text) {
-                smartWordDict = WordFinder.parseTieredDictionary(text, 2, 64);
-                updateSmartDetection(textInput.value);   // 词典就绪后重算当前输入
-                updateTranslateBar(textInput.value);
-            })
-            .catch(function () {
-                // 回退：整部 YAWL 词表当作单档（无频率分层）
-                return fetchText('resources/yawl-all.txt').then(function (text) {
-                    smartWordDict = [WordFinder.parseDictionary(text, 2, 64)];
-                    updateSmartDetection(textInput.value);
-                    updateTranslateBar(textInput.value);
-                });
-            })
-            .catch(function () {
-                smartWordDictFailed = true;
-            });
+        tryNext();
     }
 
     // @anchor: script_word_dict_end

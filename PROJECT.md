@@ -9,13 +9,12 @@
 <!-- @anchor: proj_overview_end -->
 
 <!-- @anchor: proj_arch -->
-## 整体架构
 - `index.html`：主页结构层，无内联样式与逻辑。包含头部导航、四种输入模式区（文本 / 盲文点阵 / 旗语九宫格 / 猪圈字形）、翻译跳转条与九张密码输出卡片（猪圈输入区的字形按钮由脚本按数据生成）。
 - `style.css`：主页表现层，按区块组织：变量与重置、模式选择器、四类专用输入区、翻译跳转条、九类输出卡片与响应式适配。
 - `cipher-data.js`：数据层，`CipherData` 集中存放盲文点阵、旗语方向对、摩斯点划表与猪圈字形映射四类数据，改数据即改规则。
 - `modules/*.js`：算法层，每个密码一个 IIFE 模块（braille / a1z26 / tapcode / semaphore / nato-phonetic / morse / pigpen / ascii / numeral）。
-- `script.js`：协调层，缓存 DOM、管理模式切换与四种输入状态，把文本分发给各模块渲染，并按需加载词典供智能识别与「成词判定」使用。
-- `resources/`：素材层，用户提供的词表/字表文本。`yawl-all.txt` 为 YAWL 英文词表（每行一词，凯撒页隐藏玩法使用）；`words-tiered.txt` 由 `20k.txt`（按使用频率排序的前 20k 英文单词）生成，按频率分层（每 5k 一档，以 `# tier=N` 标记），供主页智能识别的 A1Z26 分段成词使用。程序逻辑不依赖具体词表内容。
+- `script.js`：协调层，缓存 DOM、管理模式切换与四种输入状态，把文本分发给各模块渲染，并按需加载词典供智能识别与「成词判定」使用；各卡片渲染逐模块隔离异常。
+- `resources/`：素材层，用户提供的词表/字表文本。`words-tiered.txt` 由 `20k.txt`（按使用频率排序的前 20k 英文单词）生成，按频率分层（每 5k 一档，以 `# tier=N` 标记，约 152 KB），是主页与凯撒页词典的首选来源；`yawl-all.txt` 为 YAWL 英文词表（每行一词，约 2.6 MB），作为第二候选。程序逻辑不依赖具体词表内容。
 - `caesar.html` / `caesar.css` / `caesar.js`：凯撒移位页面（原独立项目 `caesar-shift` 并入），与主页同目录，展示 ROT1~ROT25 全部移位，与主页双向导航；页面内置隐藏玩法「词典词标记」，并为命中词典词的结果行附百度翻译跳转按钮。
 
 ### 数据流
@@ -29,20 +28,18 @@
 - `modules/cantor.js`：映射工具层，把 `1234` 的 24 种排列按升序映射到 `A`–`X`（康托展开），供智能识别调用。
 - `modules/smart-detect.js`：启发式识别层，分析文本输入（摩斯 / 二进制 / 三进制 / 十六进制 / A1Z26 / 敲击码 / ASCII / 康托展开 / 进制转换 / 无空格数字串的词典词递归分段）并在文本输入块内渲染可切换栏目；摩斯点划表取自摩斯模块（即数据层 `CipherData.morse`）。
 - `modules/word-finder.js`：词典工具层，把词表文本解析为词集合（支持单档与分层两种解析），并在文本中按「最左最长」匹配出词与字符区间；纯逻辑、与 DOM 无关，供凯撒页隐藏玩法、主页智能识别的分段成词检测与成词判定使用。
+- `modules/word-seed.js`：降级词表层，内置约 1400 个高频词（由 `words-tiered.txt` 第 1 档生成，含全部 2–3 字母短词），仅在两级词表 `fetch` 都失败（静态托管缺资源、`file://` 打开等）时启用，保证分段成词与成词判定不至于整体失效。
 - `modules/translate-link.js`：跳转工具层，判定英文文本是否「成词/词组」（优先词典校验，词典不可用时按字母启发式回退）并生成跳转百度翻译的小按钮；供凯撒页结果行、主页文本输入与识别结果复用。
+- `modules/translate-link.js` 的 `require` 仅用于 Node 自测导出，裹在 `try/catch` 中，浏览器不生效。
 
 - 智能识别流：文本 → `updateSmartDetection()` → `SmartDetect.detect()` 判定 → `render()` 过滤「可解码过半」的候选、自动选中「译出字母最多」的一项，在 `#smartDetectBody` 渲染栏目（多候选以并列小按钮切换，栏内视图同样以按钮切换）。
 - 词典标记流：凯撒页输入文本 → `renderResults()` 逐 ROT 移位调用 `WordFinder.findWords()` → 命中词高亮、命中行置顶。
-- 词典加载流：主页启动时 `loadSmartWordDict()` 异步 `fetch` `resources/words-tiered.txt` → `WordFinder.parseTieredDictionary`；失败则回退 `yawl-all.txt`（单档），仍失败则静默关闭分段栏目。词典就绪后重算当前输入的智能识别与翻译跳转条；`smart-detect` 首次用到词典时按词典对象缓存「可分词集合 + 词前缀集合 + 最长词长度」供分段递归剪枝。
+- 词典加载流（三级回退）：主页 `loadSmartWordDict()` / 凯撒页 `loadWordDict()` 按可靠性逐级尝试 `resources/words-tiered.txt`（分层解析）→ `resources/yawl-all.txt`（单档）→ 内置词种子 `WordSeed`；任一成功即为生效词典，并在就绪后重算当前输入的智能识别与翻译跳转条（凯撒页重渲染结果表）。全部失败（连种子也缺失）才静默降级（不显示分段栏目 / 关闭词标记）。请求词表一律用 `cache: 'no-cache'` 重新校验；`smart-detect` 首次用到词典时按词典对象缓存「可分词集合 + 词前缀集合 + 最长词长度」供分段递归剪枝。
 - 翻译跳转流：凯撒页 `renderResults()`（命中词典词的行）、主页 `updateTranslateBar()`（文本输入）与 `SmartDetect.renderItem()`（识别结果）分别调用 `TranslateLink.isWordPhrase()`；判定成词/词组时用 `createButton()` 生成指向 `https://fanyi.baidu.com/mtpe-individual/transText?query=<文本>&lang=en2zh` 的链接。
 - 猪圈输入流：`buildPigpenButtons()` 按 `PigpenCipher` 的字形数据生成四组按钮（九宫格 A–I / 加点九宫格 J–R / 叉形 S–V / 加点叉形 W–Z） → 点击字形把对应字母追加到 `pigpenAccumulatedText`（另有空格 / 退格）→ 「添加到文本」经 `appendToTextInput()` 写入文本框并派发 `input`，复用唯一渲染入口。
-
-
 - 猪圈按钮排版流：`buildPigpenButtons()` 把四组按钮容器统一设为 3×3 网格；九宫格组按钮按字母顺序（行优先）自然落位，叉形组按钮按 `spec.pos` 经 `PIGPEN_CROSS_SLOTS` 指定 `grid-row` / `grid-column`（上 / 左 / 右 / 下摆成十字，中心与四角留空）。
-
-
-- 特殊输入键盘流：`script_keyboard_shortcuts` 在 `document` 上监听 `keydown`，按 `currentMode` 分派——盲文 / 旗语模式把空格映射为「把当前字母添加到文本」，猪圈模式把空格映射为加空格、退格映射为删末位；事件目标是 `input` / `textarea` / `select` 或带修饰键时不拦截。
-
+- 特殊输入键盘流：`script_keyboard_shortcuts` 以**捕获阶段**在 `document` 上监听 `keydown`，按 `currentMode` 分派——盲文 / 旗语模式把空格映射为「把当前字母添加到文本」，猪圈模式把空格映射为加空格、退格映射为删末位；只在事件目标是「可编辑控件」（非只读的 `input` / `textarea` / `select` 或 `contenteditable`）时放行，其余情况（含只读的结果框、聚焦的按钮）照常响应快捷键并 `preventDefault`。
+- 卡片渲染隔离流：`updateAllCiphers()` 逐模块调用 `renderCard()`，单个模块抛错时只把该卡片写成占位提示并继续渲染后续卡片，避免「一个模块出错导致其余卡片空白」。
 
 <!-- @anchor: proj_arch_end -->
 
@@ -89,25 +86,30 @@
 - **进制转换区分五位 / 七位二进制**：进制转换栏目的二进制视图按位宽用途拆成两个——「五位二进制（A1Z26，值 1–26 → 字母）」与「七位二进制（ASCII，值 32–126 → 字符）」，取代此前笼统的「二进制」视图（该视图按各值最长位数对齐，与两种用途都不吻合）；三进制（位数对齐）视图保留。两个视图各自把值左补零到 5 / 7 位（值更长时取本行最大宽度），默认先展示更契合的一种（译出字符更多者，并列取五位），可手动切换；转换结果仍用等宽字体呈现，便于逐位对齐阅读。
 - **二进制数字显式渲染 + 主翻译区同步**：进制转换栏目的两个二进制视图把**对齐后的二进制数字**作为结果行（与三进制视图一致），译出的字母 / 字符改由结果行下方的附注行（`note`）给出，避免「点开进制转换只看到字母、误以为二进制没渲染」；`renderItem` 的成词判定改为「优先结果行、其次附注」，翻译按钮照旧可用。主翻译区的「进制」卡片同样把笼统的二进制行换成「五位二进制（A1Z26）」（按字母 A=1…Z=26 取值）与「七位二进制（ASCII）」（按 ASCII 码值）两行，八进制 / 十六进制行保留；两处取值逻辑独立但口径一致。
 
+- **词典三级回退 + 内置词种子**：词典是分段成词与成词判定的唯一外部依赖，也最容易在静态托管上「加载不到」。故按「能修就不降级、能降级就不失效」的顺序组织：先取体积小、带频率分层的 `resources/words-tiered.txt`，失败再取 `resources/yawl-all.txt`，都失败则用随包分发的 `modules/word-seed.js`（约 1400 个高频词，含全部短词）。由此 `file://` 打开或托管缺资源时，分段匹配与凯撒词标记只是「覆盖面变小」而非整体消失；全部失败才关闭对应栏目。
+- **词表请求用 no-cache，不用 force-cache**：`force-cache` 会跳过校验直接用缓存副本，GitHub Pages 更新词表后浏览器可能长期返回旧内容，表现为「新词表 / 新功能没加载」。改为 `no-cache`（带校验的重新请求）后，更新即时生效，代价只是多一次很轻的条件请求。
+- **词典内容有效性校验**：把「词数 < 100」视为无效响应（例如某些托管在 404 时返回 200 的 HTML 错误页），自动落到下一候选，避免一份垃圾词典静默破坏识别结果。
+- **卡片渲染逐模块隔离**：`updateAllCiphers()` 通过 `renderCard()` 逐模块 try/catch，任一模块抛错只把该卡片写成占位并记录控制台日志，其余卡片照常渲染——这类「部分卡片空白」最容易在托管环境出现（资源缺失 / 版本不一致），隔离后故障面收敛到单张卡片。
+- **键盘快捷键改为捕获阶段并按「是否可编辑」放行**：原先只在目标是 `input` / `textarea` / `select` 时跳过，导致焦点落在**只读结果框**（各特殊输入模式的翻译结果框是 `readonly`）时按空格既不确认也不 `preventDefault`，浏览器便把它当成「翻页 / 滚动」——这正是「空格确认与空格翻页冲突」的根因。现改为捕获阶段监听 + 只读控件与聚焦按钮照常响应快捷键，空格既确认字母又不会滚动页面；真正可编辑的控件仍完全放行。
+
 <!-- @anchor: proj_decisions_end -->
 
 <!-- @anchor: proj_conventions -->
-## 规范约定
 - 文件命名固定：主页三件套 `index.html` / `style.css` / `script.js` + 数据 `cipher-data.js` + `modules/` 下每密码一文件；凯撒页面为同级三件套 `caesar.html` / `caesar.css` / `caesar.js`。
 - 锚点命名：`模块_功能`（如 `braille_encode`、`script_mode_switch`、`caesar_shift_char`），每个文件首个锚点为 `<页面/文件>_intro`（如主页 `index_intro`、脚本 `script_intro`、凯撒页 `caesar_md_intro` / `caesar_script_intro`）；功能块用 `xxx` / `xxx_end` 成对包裹，锚点行下一行写职责注释。
 - 密码模块一律用 IIFE 包裹并返回 `{ encode, decode, render }`，不向全局泄露内部函数；映射数据一律放 `cipher-data.js`。
-- 所有渲染先 `container.innerHTML = ''` 再重建，空输入统一显示 `.placeholder` 占位。
+- 所有渲染先 `container.innerHTML = ''` 再重建，空输入统一显示 `.placeholder` 占位；主脚本逐模块调用并隔离异常（`renderCard()` 的 try/catch），保证单卡片失败不影响其它卡片。
 - 页面间一律使用同目录相对链接（不使用上级目录跳转），保持零构建、双击可用的约束。
 - 文本输入不设长度上限；`index.html` 不设 `maxlength`，`script.js` 仅更新「N 字符」计数、不做截断。
 - 用户可见文案中空格用 `␣`、旗语空格用 `·` 表示，保持各卡片视觉一致。
 - 对外跳转链接统一以新窗口打开并带 `rel="noopener noreferrer"`。
-- `modules/` 含九个密码模块（braille / a1z26 / tapcode / semaphore / nato-phonetic / morse / pigpen / ascii / numeral）与四个工具模块（映射 `cantor.js`、启发式识别 `smart-detect.js`、词典 `word-finder.js`、跳转 `translate-link.js`）；`smart-detect.js` 为纯判定 + 渲染，不接入卡片渲染循环，由 `script.js` 的 `updateSmartDetection()` 单独驱动；`word-finder.js` 被主页智能识别（数字串分段成词）、凯撒页隐藏玩法与 `translate-link.js`（成词判定）引用。
-- 主页脚本加载顺序：`cipher-data.js` → 九个密码模块（braille / a1z26 / tapcode / semaphore / nato-phonetic / morse / pigpen / ascii / numeral）→ `cantor.js` → `word-finder.js` → `translate-link.js` → `smart-detect.js` → `script.js`；凯撒页为 `word-finder.js` → `translate-link.js` → `caesar.js`。`script.js` / `caesar.js` 依赖前序全局符号（如 `smart-detect` 依赖 `cipher-data` 与 `morse`），顺序不可打乱。
+- `modules/` 含九个密码模块（braille / a1z26 / tapcode / semaphore / nato-phonetic / morse / pigpen / ascii / numeral）与五个工具模块（映射 `cantor.js`、启发式识别 `smart-detect.js`、词典 `word-finder.js`、降级词表 `word-seed.js`、跳转 `translate-link.js`）；`smart-detect.js` 为纯判定 + 渲染，不接入卡片渲染循环，由 `script.js` 的 `updateSmartDetection()` 单独驱动；`word-finder.js` 被主页智能识别（数字串分段成词）、凯撒页隐藏玩法与 `translate-link.js`（成词判定）引用；`word-seed.js` 仅作为词典加载失败时的回退来源。
+- 主页脚本加载顺序：`cipher-data.js` → 九个密码模块（braille / a1z26 / tapcode / semaphore / nato-phonetic / morse / pigpen / ascii / numeral）→ `cantor.js` → `word-finder.js` → `word-seed.js` → `translate-link.js` → `smart-detect.js` → `script.js`；凯撒页为 `word-finder.js` → `word-seed.js` → `translate-link.js` → `caesar.js`。主脚本必须排在最后，`script.js` / `caesar.js` 依赖前序全局符号（如 `smart-detect` 依赖 `cipher-data` 与 `morse`），顺序不可打乱；改动加载顺序后应跑 `tmp/audit-static.js` 复核。
+- 词典类资源一律经 `fetch` 读取并以 `cache: 'no-cache'` 请求（不用 `force-cache`，避免静态托管更新资源后浏览器长期返回旧副本），且必须保留「分层词表 → 整部词表 → 内置词种子」的回退链。
 
 <!-- @anchor: proj_conventions_end -->
 
 <!-- @anchor: proj_limits -->
-## 已知限制与坑
 - 仅处理英文 A-Z，不支持中文或其它语言；非字母字符在各密码中原样保留。
 - 文本输入不设长度上限；特殊输入的累积文本框只增不减（清空需用对应「清除翻译结果」按钮）。
 - 敲击码采用 5×5 Polybius 方格，I/J 合并，解码时 I/J 一律返回 `I/J`，无法区分。
@@ -120,21 +122,16 @@
 - 康托展开当前固定为 `1234` 的 24 种排列，映射字母仅 `A`–`X`，不覆盖其它数字集合。
 - 摩斯仅支持字母与数字表，符号或非法点划组合（如 `-....-`）显示为 `?`。
 - 进制转换的 7 位 ASCII 视图对非可打印值（< 32 或 > 126）显示 `?`；二进制 / 三进制视图按各值各自转换后的最长位数对齐，不强制 5/7 位。
-- A1Z26 分段仅处理「无空格、纯数字、长度 > 5」的整串输入：从头部取词典词并递归分解剩余，多解按「段数少 → 频率档更靠前 → 字母更多」排序，最多 12 解；单个词的枚举长度上限取词典最长词，并用按词典对象缓存的「词前缀集合」剪枝，另有节点预算兜底。长度 ≤ 3 的短词只取前 5k 高频档（因此 `yawl-all.txt` 里的生僻短词不会进入结果）。整串无法切成词典词则不给出分段栏目；分层词典（`words-tiered.txt`）与回退词典（`yawl-all.txt`）均不可用时该栏目自动关闭。
-- 凯撒词典标记：只匹配长度 ≥ 3 的字母串，采用最左最长匹配（不重叠）；通用词典含大量生僻词，短输入仍可能出现噪声命中（此时可用双击标题关闭）。`fetch` 受同源策略限制，直接以 `file://` 打开时词典加载失败，功能自动关闭并提示改经本地 HTTP 服务访问。主页智能识别的分段匹配同样依赖该词典，`file://` 下不可用。
-
-
-- 翻译跳转按钮依赖「成词/词组」判定：词典可用时按词典匹配（得分 ≥ 2），词典不可用（如 `file://`）时退回启发式（仅字母 / 空格 / 常见标点且含 ≥ 3 字母词），此时生僻字母串也可能被判为「词」而显示按钮；凯撒页只在命中词典词的行给按钮，词典不可用则无按钮。跳转指向百度翻译外部页面，需联网。
-
-
+- A1Z26 分段仅处理「无空格、纯数字、长度 > 5」的整串输入：从头部取词典词并递归分解剩余，多解按「段数少 → 频率档更靠前 → 字母更多」排序，最多 12 解；单个词的枚举长度上限取词典最长词，并用按词典对象缓存的「词前缀集合」剪枝，另有节点预算兜底。长度 ≤ 3 的短词只取前 5k 高频档（因此 `yawl-all.txt` 里的生僻短词不会进入结果）。整串无法切成词典词则不给出分段栏目；三级回退（分层词表 → 整部词表 → 内置词种子）全部不可用才关闭该栏目。内置词种子只有约 1400 个高频词，用它降级时分段结果明显偏少（覆盖范围小）。
+- 词典可用性：`fetch` 受同源策略限制，直接以 `file://` 打开时两级词表都读不到，此时回退到内置词种子——主页的分段匹配与凯撒页的词标记**降级但仍可用**（覆盖面远小于完整词表），提示文案仍建议经本地 HTTP 服务访问。
+- 翻译跳转按钮依赖「成词/词组」判定：词典可用时按词典匹配（得分 ≥ 2）；词典与内置种子都不可用时退回启发式（仅字母 / 空格 / 常见标点且含 ≥ 3 字母词），此时生僻字母串也可能被判为「词」而显示按钮。跳转指向百度翻译外部页面，需联网。
+- 静态托管（GitHub Pages）注意：整目录（含 `resources/`、`modules/`）都要发布，否则词典类功能只能走内置种子；仓库根目录建议放一个空的 `.nojekyll`，避免 Jekyll 构建阶段忽略/改写文件造成资源 404；建议经 `https://…/cipher-translator/`（带尾斜杠）或显式 `index.html` 访问，保证相对路径解析一致。`resources/yawl-all.txt` 约 2.6 MB，仅在第一候选 `words-tiered.txt` 取不到时才会请求，移动网络下仍可能较慢。
 - 新增四类输出卡片的限制：摩斯仅收录字母与数字，编码时无法表示的字符被忽略、解码时未收录点划显示 `?`；猪圈无空格字形（空格以 `␣` 占位，输入区单独提供空格键），未知字符原样显示；ASCII 与进制仅处理可打印字符（32–126），越界 / 不可打印以 `?` 表示；ASCII / 进制 / 摩斯 / 猪圈卡片最多显示 40 个字符（摩斯为 24 个），超出以 `…(+N个字符)` 省略。进制卡片的位宽以「本行最大位宽」与「该行最小位宽（五位二进制 5 / 七位二进制 7 / 八进制 3 / 十六进制 2）」的较大者为准，长输入时行内可横向滚动；五位二进制行只对字母取值（A=1…Z=26）、七位二进制行只对可打印字符取值，取值不可用的列显示 `?`。
 - 猪圈字形约定：九宫格与叉形的对应关系写在数据层（A–I 无点九宫格、J–R 加点九宫格、S–V 叉形 4 个 90° 区域、W–Z 加点叉形）。九宫格取「无外框取边」画法（角格 2 条、边格 3 条、中心 4 条）；叉形每区取「中心 → 该区域两角」的两条对角线段，**不画正方形外框**，因此四个区域分别呈现为 V / > / < / ^ 形；加点叉形的点落在区域中线上（距中心 1/3 边长）。字形为示意而非逐像素标准，若需换成其它分区顺序或加点位置，只改 `cipher-data.js` 的 `pigpen` 映射。
-
-
-- 键盘快捷键只在对应输入模式下生效，且事件目标为 `input` / `textarea` / `select` 时不拦截；猪圈模式下焦点停在某个字形按钮上时，按空格会「加空格」而非重复点击该字形（字形按钮改用回车激活）。
-
-
+- 键盘快捷键只在盲文 / 旗语 / 猪圈模式下生效，且只在事件目标是「可编辑控件」（非只读的 `input` / `textarea` / `select` 或 `contenteditable`）时放行：只读的结果框、聚焦的按钮上按空格都会触发快捷键而非滚动页面 / 激活按钮，因此猪圈模式下焦点停在字形按钮时按空格是「加空格」（字形按钮改用回车或鼠标点击）；带 Ctrl / Meta / Alt 的组合键一律不拦截。
 - 进制转换的二进制视图有「五位（A1Z26）」与「七位（ASCII）」两种（取代此前笼统的「二进制 / 7 位 ASCII」表述）：两者的结果行都是对齐后的二进制数字，译出的字母 / 字符放在附注行：前者对超出 1–26 的值显示 `?`，后者对非可打印值（< 32 或 > 126）显示 `?`；三进制视图按各值转换后的最长位数对齐。栏目默认选中的二进制视图按「译出字符更多」推断，值域混排时可能不是想要的那种，需手动切换。
+
+- GitHub Pages 的 HTML / JS / CSS 由 CDN 缓存约 10 分钟：刚发布新版本时页面可能仍是旧脚本（表现为「功能没生效 / 卡片不对」），等缓存过期或强制刷新（Ctrl+F5）即可；词表本身已用 `no-cache` 请求，不受此影响。若需彻底避免，可在 `<script src="…">` 后加版本查询串（如 `script.js?v=20`）后再发布。
 
 <!-- @anchor: proj_limits_end -->
 
@@ -142,5 +139,11 @@
 ## 启动方式
 无需依赖与构建：浏览器直接打开 `cipher-translator/index.html`；凯撒移位页面为同目录下的 `cipher-translator/caesar.html`，也可从主页头部「🔄 凯撒移位」按钮进入。
 凯撒页的隐藏玩法（词典词标记）需经本地 HTTP 服务访问才能读取 `resources/yawl-all.txt`，例如在 `cipher-translator` 目录执行 `python -m http.server` 后打开 `http://localhost:8000/caesar.html`；直接以 `file://` 打开时该玩法自动关闭，其余功能不受影响。
+
+### 静态托管（GitHub Pages）
+把整个 `cipher-translator/` 目录推送到仓库即可（含 `resources/` 与 `modules/`），无需构建步骤。发布前建议做两件事：
+1. 仓库根目录放一个空的 `.nojekyll` 文件，跳过 Jekyll 构建（Jekyll 默认忽略下划线开头文件与 `vendor/`、`node_modules/`，历史上是静态站点「资源 404」的常见来源）；
+2. 跑一次体检：`node tmp/audit-static.js`——检查本地引用是否存在且大小写一致、脚本加载顺序、缓存策略、`script.js` 依赖的全局是否都已定义、素材体积等（本沙箱不允许创建 `.nojekyll` 这类点文件，请在部署仓库里手动添加）。
+访问时用 `https://<用户>.github.io/<仓库名>/`（带尾斜杠）或显式 `…/index.html`，两者的相对路径解析一致；凯撒页为同目录的 `caesar.html`。
 
 <!-- @anchor: proj_start_end -->

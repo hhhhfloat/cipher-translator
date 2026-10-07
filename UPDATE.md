@@ -185,5 +185,16 @@
 <!-- @anchor: log_019_end -->
 
 
+<!-- @anchor: log_020 -->
+# [本次] 静态托管健壮性（词典三级回退 + 内置词种子 + 卡片隔离）与空格快捷键冲突修复
+- **问题定位（需求 1：托管后部分计算 / 转译卡片加载不到）**：逐项体检（`tmp/audit-static.js`）确认本地引用、脚本顺序、大小写、重复 id、charset 均无问题，卡片不会「加载不到」；真正的失效点是唯一的外部依赖——词典：① `fetch` 用了 `cache: 'force-cache'`，托管更新词表后浏览器可能长期返回旧副本（表现为「新词表 / 新功能没加载」）；② 词表只有两级候选，且 caesar 页首选 2.6 MB 的 `yawl-all.txt`，移动网络或资源漏传时容易取不到而使「A1Z26 分段匹配」「翻译跳转判定」「凯撒词标记」整体失效；③ 卡片渲染未做异常隔离，单个模块抛错会中断整轮渲染，出现「部分卡片空白」。
+- **词典三级回退 + 内置词种子**：新增 `modules/word-seed.js`（由 `tmp/build-word-seed.js` 从 `words-tiered.txt` 第 1 档生成，约 1400 个高频词含全部 2–3 字母短词，约 9 KB，敏感词不入种子）。`script.js` 的 `loadSmartWordDict()` 与 `caesar.js` 的 `loadWordDict()` 改为逐级尝试「分层词表 `words-tiered.txt` → 整部词表 `yawl-all.txt` → 内置种子」，并把「词数 < 100」视为无效响应（如 404 返回的 HTML 错误页）继续回退；caesar 页首选改为 152 KB 的分层词表，`yawl-all.txt` 降为备份。`index.html` / `caesar.html` 按序加载 `word-seed.js`。
+- **缓存策略**：两页词表请求由 `force-cache` 改为 `no-cache`（带校验的重新请求），托管更新后即时生效。
+- **卡片渲染隔离**：`script.js` 抽出 `renderCard(name, text)`，`updateAllCiphers()` 逐模块 try/catch，单卡片失败只显示占位并打印日志；`updateSmartDetection()` / `updateTranslateBar()` 同样包 try/catch。
+- **问题定位与修复（需求 2：空格确认与浏览器「空格翻页」冲突）**：原监听里 `isTypingTarget()` 只判断标签名，焦点落在**只读结果框**（各特殊输入模式的结果框是 `readonly input`）时快捷键被跳过且没 `preventDefault`，浏览器于是把空格当翻页——即用户所见冲突。现改为捕获阶段监听（`document.addEventListener('keydown', handler, true)`）+ `isEditableTarget()`（只读 / 禁用控件与聚焦按钮不再放行），空格既确认字母又阻断滚动。
+- **自测**：新增 `tmp/test-static-fallback.js`（19 项：fetch 全失败 → 内置种子仍支持 `85121215 → HELLO`、翻译条与凯撒词标记仍工作；分层词典 404 → 回退整部词表；`cache: no-cache`；捕获阶段注册；只读结果框按空格 / 退格生效且 `preventDefault`；可编辑框放行）；`tmp/audit-static.js` 升级为可复跑体检（引用 / 顺序 / 缓存 / Node API / 全局依赖 / 素材体积 / `.nojekyll` 提示）；`test-translate-link`（36）、`test-integration`（86）、`test-smart-detect`（90）、`test-new-ciphers`（116）、`test-tiered-words`（23）、`check-syntax`（17 文件）、`check-css` 全绿。
+- **文档**：`PROJECT.md` 的架构（新增 `word-seed` 层、词典加载流改为三级回退、键盘流改为捕获阶段、新增卡片隔离流）、关键决策（三级回退 / no-cache / 内容校验 / 渲染隔离 / 捕获阶段）、规范约定（脚本顺序与词典请求约定）、已知限制（托管注意事项与降级行为）与启动方式（新增「静态托管（GitHub Pages）」一节）同步；锚点索引重建。
+<!-- @anchor: log_020_end -->
+
 <!-- @anchor: update_record_anchor -->
 <!-- 追加区：后续新记录统一插入本锚点之前 -->
