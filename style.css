@@ -312,7 +312,7 @@ body {
 /* @anchor: css_input_base_end */
 
 /* @anchor: css_smart_detect */
-/* 半智能识别区：识别面板、下拉切换与逐项映射 chips */
+/* 半智能识别区：识别面板、并列按钮切换（候选栏目 / 栏内视图）与逐项映射 chips */
 /* ============================================
    半智能识别区
    ============================================ */
@@ -352,31 +352,47 @@ body {
     line-height: 1.5;
 }
 
-.smart-select-label {
-    display: inline-flex;
-    align-items: center;
+/* --- 并列切换按钮：候选栏目与栏内视图共用 --- */
+.smart-tabs {
+    display: flex;
+    flex-wrap: wrap;
     gap: 8px;
-    font-size: 0.82rem;
-    font-weight: 600;
-    color: var(--text-muted);
     margin-bottom: 12px;
 }
 
-.smart-select {
+.smart-tab {
     font-family: var(--font-sans);
-    font-size: 0.9rem;
-    color: var(--text);
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text-muted);
     background: var(--card-bg);
     border: 2px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 6px 10px;
+    border-radius: 999px;
+    padding: 5px 14px;
     cursor: pointer;
     outline: none;
-    transition: border-color 0.25s;
+    transition: color 0.2s, border-color 0.2s, background 0.2s;
 }
 
-.smart-select:focus {
+.smart-tab:hover {
     border-color: var(--accent);
+    color: var(--accent);
+}
+
+.smart-tab.is-active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+}
+
+.smart-tab-sm {
+    font-size: 0.76rem;
+    padding: 3px 12px;
+    border-width: 1px;
+}
+
+.smart-view-tabs {
+    margin-top: -4px;
 }
 
 .smart-item-head {
@@ -439,18 +455,12 @@ body {
     font-weight: 700;
     font-family: var(--font-serif);
 }
+
 /* --- 进制转换等数字型结果：等宽字体，便于位数对齐阅读 --- */
 .smart-item-result.smart-num {
     font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
     font-size: 1.05rem;
     letter-spacing: 0.05em;
-}
-
-.smart-view-select {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 12px;
 }
 
 /* @anchor: css_smart_detect_end */

@@ -43,7 +43,7 @@
         <!-- @anchor: html_mode_selector_end -->
 
         <!-- @anchor: html_text_input -->
-<!-- 文本输入区域：直接键入英文或数字串/十六进制/二进制/摩斯点划，实时转换五种密码并启用智能识别 -->
+<!-- 文本输入区：键入字母 / 数字串 / 二进制 / 十六进制 / 摩斯点划，实时转换五种密码并启用智能识别；不设长度上限 -->
         <section class="input-section" id="textInputSection">
             <div class="input-wrapper">
                 <label for="textInput" class="input-label">输入英文文本</label>
@@ -52,18 +52,16 @@
                         type="text"
                         id="textInput"
                         class="text-input"
-                        placeholder="例如：HELLO / 8 5 12 12 15 / 01000 00101 / .... . .-.. .-.. ---"
-                        maxlength="120"
+                        placeholder="例如：HELLO / 8 5 12 12 15 / .... . .-.. .-.. --- / 85121215"
                     >
                     <button id="clearBtn" class="clear-btn" title="清空">✕</button>
                 </div>
-                <span id="charCount" class="char-count">0 / 120</span>
+                <span id="charCount" class="char-count">0 字符</span>
             </div>
-            <p class="input-hint">支持 A-Z 字母实时转换五种古典密码；输入数字串、二进制、十六进制、三进制或摩斯点划会智能识别 A1Z26 / 敲击码 / ASCII / 康托展开，并给出进制转换栏目</p>
+            <p class="input-hint">支持 A-Z 字母实时转换五种古典密码；数字串、二进制、十六进制、三进制或摩斯点划会被智能识别（A1Z26 / 敲击码 / ASCII / 康托展开 / 进制转换），自动选中译出字母最多的结果；无空格数字串还会按词典词递归分段（如 91419945 → INSIDE / IN SIDE）。输入不设长度上限</p>
 
-            
             <!-- @anchor: html_smart_detect -->
-<!-- 半智能识别区：按输入形态（数字 / 十六进制 / 二进制 / 三进制 / 摩斯点划等）自动识别编码，含进制转换栏目；结果多于一项时以下拉框切换栏目 -->
+<!-- 半智能识别区：自动识别并按「译出字母最多」选中结果，可解码过半的候选以并列小按钮切换；含进制转换栏目；无空格数字串（>5）会按词典词递归分段（如 91419945 → INSIDE / IN SIDE） -->
             <div class="smart-detect" id="smartDetect">
                 <div class="smart-detect-header">
                     <span class="smart-detect-icon">🔎</span>
@@ -72,9 +70,9 @@
                 <div class="smart-detect-body" id="smartDetectBody"></div>
             </div>
 
-            
             <!-- @anchor: html_smart_detect_end -->
         </section>
+
         <!-- @anchor: html_text_input_end -->
 
         <!-- @anchor: html_braille_input -->
@@ -271,8 +269,7 @@
     </footer>
 
     <!-- @anchor: html_scripts -->
-
-    <!-- 脚本加载顺序：数据文件 → 各密码模块（含康托展开）→ 半智能识别 → 主脚本 -->
+    <!-- 脚本加载顺序：数据文件 → 各密码模块（含康托展开）→ 词典工具 → 半智能识别 → 主脚本 -->
     <script src="cipher-data.js"></script>
     <script src="modules/braille.js"></script>
     <script src="modules/a1z26.js"></script>
@@ -280,8 +277,10 @@
     <script src="modules/semaphore.js"></script>
     <script src="modules/nato-phonetic.js"></script>
     <script src="modules/cantor.js"></script>
+    <script src="modules/word-finder.js"></script>
     <script src="modules/smart-detect.js"></script>
     <script src="script.js"></script>
+
     <!-- @anchor: html_scripts_end -->
 </body>
 </html>

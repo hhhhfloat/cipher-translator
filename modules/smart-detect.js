@@ -1,5 +1,5 @@
 // @anchor: smart_detect_intro
-// 半智能识别模块：分析文本输入，判定可能的编码（摩斯 / 二进制 / 三进制 / 十六进制 / A1Z26 / 敲击码 / ASCII / 康托展开），并渲染可切换栏目
+// 半智能识别模块：分析文本输入判定可能的编码（摩斯 / 二进制 / 三进制 / 十六进制 / A1Z26 / 敲击码 / ASCII / 康托展开 / 无空格数字串的词典词分段），并渲染可切换栏目
 /**
  * 半智能识别 (Smart Detect) 模块
  * 针对文本输入做启发式判定：
@@ -13,10 +13,16 @@
  *       - 全部为两位数字（数位 1–5） → 追加敲击码解码
  *       - 全部由 0–2 组成且含数字 2  → 追加三进制解码
  *       - 始终追加「进制转换」栏目：二进制 / 三进制（位数对齐）与二进制 7 位（ASCII）
- * 结果多于一项时渲染为下拉框切换的栏目；进制转换栏目内部可再切换进制视图。
+ *   - 无空格的一整串数字（长度 > 5）：从头部取「能译成词典词」的子串并递归分解剩余部分；
+ *     词典按使用频率分层（每 5k 一档），短词（≤3 字母）只取自最高频档；能分解为词典词时给出
+ *     「分段匹配」栏目（如 91419945 → INSIDE 与 IN SIDE）
+ * 渲染时先过滤掉「可解码 token 占比 ≤ 1/2」的候选，再自动选中「译出字母最多」的一项；
+ * 多个候选以并列小按钮切换，栏目内部视图（如分段解、进制）同样以按钮切换。
  */
+
 const SmartDetect = (() => {
     'use strict';
+
 
 
     // @anchor: smart_detect_parse
@@ -305,11 +311,182 @@ const SmartDetect = (() => {
     }
 
 
+    // @anchor: smart_detect_digitwords
+    // 无空格数字串的词典分段：从头部取一个能译成词典词的子串，递归分解剩余部分；
+    // 词典按使用频率分层（每 5k 一档，见 resources/words-tiered.txt），短词只取自最高频档，
+    // 并以「词前缀集合」剪枝；结果按「段数少 → 来源档位更靠前 → 字母更多」排序
+    const MIN_WORD_LEN = 2;                 // 允许 2 字母词（如 in / at），以支持 "in side" 这类分段
+    const SHORT_WORD_MAX_LEN = 3;           // 「短词」长度上限（≤3 的短词组合多、噪声大）
+    const SHORT_WORD_TIERS = 1;             // 短词仅从前 N 个高频档检索（默认第 1 档 = 前 5k 高频词，集合相对固定）
+    const MAX_SEGMENT_RESULTS = 12;         // 分段解数量上限
+    const SEGMENT_NODE_BUDGET = 300000;     // 递归节点预算，极端输入时保底
+
+    // 词典上下文缓存（按词典对象缓存一次，见 getDictCtx）
+    const dictCtxCache = (typeof WeakMap !== 'undefined') ? new WeakMap() : null;
+
+    // 归一化词典为「分层数组（Set[]）」：支持分层对象 {tiers:[Set...]}、分层解析结果数组、单档 Set
+    function dictTiers(dict) {
+        if (!dict) return null;
+        if (dict instanceof Set) return [dict];
+        if (Array.isArray(dict)) {
+            const out = [];
+            for (let i = 0; i < dict.length; i++) {
+                const t = (dict[i] && dict[i].words) ? dict[i].words : dict[i];
+                if (t instanceof Set) out.push(t);
+            }
+            return out.length ? out : null;
+        }
+        if (dict.tiers) return dictTiers(dict.tiers);
+        return null;
+    }
+
+    // 由分层词典构建上下文：allowed=可参与分段的词、tierOf=词→最低档位、prefixes=词前缀集合、maxLen=最长词
+    function getDictCtx(dict) {
+        const tiers = dictTiers(dict);
+        if (!tiers || !tiers.length) return null;
+        if (dictCtxCache && dictCtxCache.has(dict)) return dictCtxCache.get(dict);
+
+        const allowed = new Set();
+        const tierOf = new Map();
+        let maxLen = 0;
+        tiers.forEach(function (words, ti) {
+            const blockShort = ti >= SHORT_WORD_TIERS;   // 第 N 档之后不再提供短词
+            words.forEach(function (w) {
+                if (w.length < MIN_WORD_LEN) return;
+                if (blockShort && w.length <= SHORT_WORD_MAX_LEN) return;
+                if (w.length > maxLen) maxLen = w.length;
+                allowed.add(w);
+                if (!tierOf.has(w) || ti < tierOf.get(w)) tierOf.set(w, ti);
+            });
+        });
+        if (!allowed.size) return null;
+
+        const prefixes = new Set();
+        allowed.forEach(function (w) {
+            for (let i = 1; i <= w.length; i++) prefixes.add(w.slice(0, i));
+        });
+
+        const ctx = { allowed: allowed, tierOf: tierOf, prefixes: prefixes, maxLen: maxLen, tierCount: tiers.length };
+        if (dictCtxCache) dictCtxCache.set(dict, ctx);
+        return ctx;
+    }
+
+    // 从 start 起枚举所有「能译成词典词」的小段 {word, end, numbers, tier}（用前缀集合剪枝；按小写匹配）
+    function wordBlocksAt(digits, start, ctx) {
+        const n = digits.length;
+        const blocks = [];
+        const nums = [];
+
+        function walk(pos, s) {
+            if (s.length >= MIN_WORD_LEN && ctx.allowed.has(s)) {
+                blocks.push({ word: s.toUpperCase(), end: pos, numbers: nums.slice(), tier: ctx.tierOf.get(s) });
+            }
+            if (s.length >= ctx.maxLen || pos >= n) return;
+
+            const c1 = digits.charCodeAt(pos) - 48;
+            if (c1 >= 1) {                                              // 1 位数：1–9
+                const ns = s + String.fromCharCode(96 + c1);            // 96 + 1 = 'a'
+                if (ctx.prefixes.has(ns)) { nums.push(c1); walk(pos + 1, ns); nums.pop(); }
+            }
+            if (pos + 1 < n) {                                          // 2 位数：10–26
+                const two = c1 * 10 + (digits.charCodeAt(pos + 1) - 48);
+                if (c1 >= 1 && two <= 26) {
+                    const ns = s + String.fromCharCode(96 + two);
+                    if (ctx.prefixes.has(ns)) { nums.push(two); walk(pos + 2, ns); nums.pop(); }
+                }
+            }
+        }
+
+        walk(start, '');
+        // 高频档优先、同档取更长：让 DFS 先产出更可信 / 段数更少的组合
+        blocks.sort(function (a, b) {
+            if (a.tier !== b.tier) return a.tier - b.tier;
+            return b.word.length - a.word.length;
+        });
+        return blocks;
+    }
+
+    // 把整串数字递归分解为若干词典词；返回 [{words, numbers, tierSum}]
+    function findDigitWords(digits, ctx) {
+        const out = [];
+        if (!ctx || !ctx.allowed || !ctx.allowed.size || !ctx.prefixes) return out;
+        if (typeof digits !== 'string' || !/^\d{6,}$/.test(digits)) return out;  // 仅处理长度 > 5 的纯数字串
+        if (ctx.maxLen < MIN_WORD_LEN) return out;
+
+        const n = digits.length;
+        const blockCache = new Array(n + 1);
+        let nodes = 0;
+
+        function blocksOf(pos) {
+            if (!blockCache[pos]) { blockCache[pos] = wordBlocksAt(digits, pos, ctx); }
+            return blockCache[pos];
+        }
+
+        function decompose(pos, words, numsAcc, tierSum) {
+            if (out.length >= MAX_SEGMENT_RESULTS || nodes > SEGMENT_NODE_BUDGET) return;
+            if (pos === n) {
+                out.push({
+                    words: words.slice(),
+                    numbers: numsAcc.map(function (a) { return a.slice(); }),
+                    tierSum: tierSum
+                });
+                return;
+            }
+            nodes++;
+            const blocks = blocksOf(pos);
+            for (let b = 0; b < blocks.length; b++) {
+                if (out.length >= MAX_SEGMENT_RESULTS) break;
+                words.push(blocks[b].word);
+                numsAcc.push(blocks[b].numbers);
+                decompose(blocks[b].end, words, numsAcc, tierSum + blocks[b].tier);
+                numsAcc.pop();
+                words.pop();
+            }
+        }
+
+        decompose(0, [], [], 0);
+        // 分段越少越优先；同段数时更高频（档位和更小）优先，再取字母更多者
+        out.sort(function (a, b) {
+            if (a.words.length !== b.words.length) return a.words.length - b.words.length;
+            if (a.tierSum !== b.tierSum) return a.tierSum - b.tierSum;
+            return b.words.join('').length - a.words.join('').length;
+        });
+        return out;
+    }
+
+    function buildDigitWords(decompositions) {
+        const views = decompositions.map(function (dec) {
+            const chips = [];
+            dec.numbers.forEach(function (wordNums, wi) {
+                if (wi > 0) { chips.push({ from: '·', to: ' ' }); }
+                wordNums.forEach(function (num) {
+                    chips.push({ from: String(num), to: String.fromCharCode(64 + num) });
+                });
+            });
+            const phrase = dec.words.join(' ');
+            return {
+                label: phrase,
+                tag: '数字串 → 词典词分段（' + dec.words.length + ' 段）',
+                result: phrase,
+                chips: chips
+            };
+        });
+        return {
+            key: 'digitwords',
+            title: 'A1Z26 分段匹配',
+            views: views
+        };
+    }
+
+
+    // @anchor: smart_detect_digitwords_end
+
+
     // @anchor: smart_detect_builders_end
 
     // @anchor: smart_detect_detect
-    // 核心判定：摩斯 / 二进制 / 康托展开 / 十六进制独占；ASCII 与 A1Z26 互斥；敲击码与三进制为追加项；始终追加进制转换
-    function detect(text) {
+    // 核心判定：摩斯 / 二进制 / 康托展开 / 十六进制独占；ASCII 与 A1Z26 互斥；敲击码 / 三进制 / 词典分段为追加项；始终追加进制转换
+    function detect(text, dict) {
         // 摩斯：点划输入（独占，与数字模式互斥）
         const morseWords = parseMorseWords(text);
         if (morseWords) return [buildMorse(morseWords)];
@@ -339,6 +516,13 @@ const SmartDetect = (() => {
 
         const results = [];
 
+        // 无空格的一整串数字（长度 > 5）：从头部递归分解为词典词
+        if (tokens.length === 1) {
+            const ctx = getDictCtx(dict);
+            const digitWords = ctx ? findDigitWords(tokens[0], ctx) : [];
+            if (digitWords.length) { results.push(buildDigitWords(digitWords)); }
+        }
+
         // 大于 2/3 的数字 ≥ 65 → ASCII；否则 A1Z26（ge65*3 > tokens*2 等价于严格大于 2/3）
         const ge65Count = tokens.filter(function (t) {
             return parseInt(t, 10) >= 65;
@@ -365,16 +549,39 @@ const SmartDetect = (() => {
         return results;
     }
 
+
     // @anchor: smart_detect_detect_end
 
     // @anchor: smart_detect_render
-    // 渲染识别面板：多于一项时用下拉框切换，单项直接展示，无匹配显示占位提示
-    function render(container, text) {
+    // 渲染识别面板：过滤出「可解码过半」的候选，自动选中「译出字母最多」的一项；多候选以并列小按钮切换
+    function primaryView(item) {
+        return (item.views && item.views.length) ? item.views[0] : item;
+    }
+
+    // 统计栏目解码情况：total 为非分隔 chips 数、valid 为成功解码数、letters 为译出的字母数、coverage 为可解码占比
+    function itemStats(item) {
+        const view = primaryView(item);
+        const chips = view.chips || [];
+        let total = 0, valid = 0, letters = 0;
+        chips.forEach(function (chip) {
+            if (chip.from === '/' || chip.from === '|' || chip.from === '·') { return; }
+            total++;
+            if (chip.to && chip.to !== '?') { valid++; }
+            if (chip.to && /^[A-Za-z]$/.test(chip.to)) { letters++; }
+        });
+        return { total: total, valid: valid, letters: letters, coverage: total ? valid / total : 0 };
+    }
+
+    function render(container, text, dict) {
         if (!container) return;
         container.innerHTML = '';
 
-        const interpretations = detect(text);
-        if (interpretations.length === 0) {
+        // 只保留「可解码 token 占比 > 1/2」的候选
+        const candidates = detect(text, dict).filter(function (item) {
+            return itemStats(item).coverage > 0.5;
+        });
+
+        if (candidates.length === 0) {
             const placeholder = document.createElement('div');
             placeholder.className = 'smart-placeholder';
             placeholder.textContent = String(text || '').trim()
@@ -384,37 +591,49 @@ const SmartDetect = (() => {
             return;
         }
 
+        // 自动选中「译出字母最多」的一项（并列取先出现者）
+        let best = 0;
+        let bestLetters = -1;
+        candidates.forEach(function (item, index) {
+            const letters = itemStats(item).letters;
+            if (letters > bestLetters) { bestLetters = letters; best = index; }
+        });
+
         const content = document.createElement('div');
         content.className = 'smart-content';
 
-        // 栏目多于一项 → 下拉选项框切换
-        if (interpretations.length > 1) {
-            const label = document.createElement('label');
-            label.className = 'smart-select-label';
-            label.textContent = '识别结果';
-
-            const select = document.createElement('select');
-            select.className = 'smart-select';
-            interpretations.forEach(function (item, index) {
-                const option = document.createElement('option');
-                option.value = String(index);
-                option.textContent = item.title;
-                select.appendChild(option);
+        // 多个候选 → 并列小按钮切换
+        if (candidates.length > 1) {
+            const tabs = document.createElement('div');
+            tabs.className = 'smart-tabs';
+            const buttons = [];
+            candidates.forEach(function (item, index) {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'smart-tab' + (index === best ? ' is-active' : '');
+                btn.textContent = item.title;
+                btn.setAttribute('aria-pressed', index === best ? 'true' : 'false');
+                btn.addEventListener('click', function () {
+                    buttons.forEach(function (other) {
+                        other.classList.remove('is-active');
+                        other.setAttribute('aria-pressed', 'false');
+                    });
+                    btn.classList.add('is-active');
+                    btn.setAttribute('aria-pressed', 'true');
+                    renderItem(content, item);
+                });
+                buttons.push(btn);
+                tabs.appendChild(btn);
             });
-            label.appendChild(select);
-            container.appendChild(label);
-
-            select.addEventListener('change', function () {
-                renderItem(content, interpretations[parseInt(select.value, 10)]);
-            });
+            container.appendChild(tabs);
         }
 
         container.appendChild(content);
-        renderItem(content, interpretations[0]);
+        renderItem(content, candidates[best]);
     }
 
     // @anchor: smart_detect_render_item
-    // 渲染单个识别栏目：标题 + 视图（多于一个视图时栏内再用下拉切换进制）+ 规则说明 + 结果串 + 映射 chips
+    // 渲染单个识别栏目：标题 + 视图（多于一个视图时以并列小按钮切换，如进制）+ 规则说明 + 结果串 + 映射 chips
     function renderItem(container, item) {
         container.innerHTML = '';
 
@@ -432,42 +651,34 @@ const SmartDetect = (() => {
 
         head.appendChild(title);
         head.appendChild(tag);
+        container.appendChild(head);
+
+        // 栏内视图切换（仅当栏目定义多个视图，如进制转换）
+        if (views.length > 1) {
+            const viewTabs = document.createElement('div');
+            viewTabs.className = 'smart-tabs smart-view-tabs';
+            const viewBtns = [];
+            views.forEach(function (view, index) {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'smart-tab smart-tab-sm' + (index === 0 ? ' is-active' : '');
+                btn.textContent = view.label || item.title;
+                btn.addEventListener('click', function () {
+                    viewBtns.forEach(function (other) { other.classList.remove('is-active'); });
+                    btn.classList.add('is-active');
+                    paint(view);
+                });
+                viewBtns.push(btn);
+                viewTabs.appendChild(btn);
+            });
+            container.appendChild(viewTabs);
+        }
 
         const result = document.createElement('div');
         result.className = 'smart-item-result' + (item.key === 'baseconv' ? ' smart-num' : '');
 
         const chips = document.createElement('div');
         chips.className = 'smart-chips';
-
-        // 栏内视图切换（仅当栏目定义多个视图，如进制转换）
-        let viewSelect = null;
-        if (views.length > 1) {
-            const label = document.createElement('label');
-            label.className = 'smart-select-label smart-view-select';
-
-            const labelText = document.createElement('span');
-            labelText.textContent = '进制';
-            label.appendChild(labelText);
-
-            viewSelect = document.createElement('select');
-            viewSelect.className = 'smart-select';
-            views.forEach(function (view, index) {
-                const option = document.createElement('option');
-                option.value = String(index);
-                option.textContent = view.label || item.title;
-                viewSelect.appendChild(option);
-            });
-            label.appendChild(viewSelect);
-
-            viewSelect.addEventListener('change', function () {
-                paint(views[parseInt(viewSelect.value, 10)]);
-            });
-
-            container.appendChild(head);
-            container.appendChild(label);
-        } else {
-            container.appendChild(head);
-        }
 
         function paint(view) {
             tag.textContent = view.tag || '';
@@ -501,6 +712,7 @@ const SmartDetect = (() => {
         paint(views[0]);
     }
     // @anchor: smart_detect_render_item_end
+
     // @anchor: smart_detect_render_end
 
     return { detect, render };

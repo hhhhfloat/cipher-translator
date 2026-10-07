@@ -16,9 +16,6 @@
     const clearBtn = document.getElementById('clearBtn');
     const charCount = document.getElementById('charCount');
 
-    // 文本输入最大长度（与 index.html 的 maxlength 保持一致）
-    const MAX_LEN = 120;
-
     // 三个输入区域
     const textInputSection = document.getElementById('textInputSection');
     const brailleInputSection = document.getElementById('brailleInputSection');
@@ -63,6 +60,7 @@
     };
     // 半智能识别结果容器
     const smartDetectBody = document.getElementById('smartDetectBody');
+
 
 
     // @anchor: script_dom_refs_end
@@ -420,15 +418,13 @@
     // @anchor: script_semaphore_input_end
 
     // @anchor: script_append_text
-    // 通用文本追加：把单个字母写入文本框并派发 input 事件
+    // 通用文本追加：把单个字母写入文本框并派发 input 事件（不设长度上限）
     /**
      * 向文本输入框追加字符并触发更新
      * @param {string} char - 要追加的单个字母
      */
     function appendToTextInput(char) {
-        var current = textInput.value;
-        if (current.length >= MAX_LEN) return;
-        textInput.value = current + char;
+        textInput.value += char;
         textInput.dispatchEvent(new Event('input', { bubbles: true }));
     }
 
@@ -458,35 +454,67 @@
     // @anchor: script_render_ciphers_end
 
     // @anchor: script_smart_detect
-    // 半智能识别：把文本交给 SmartDetect，渲染数字型输入可识别的编码栏目
+    // 半智能识别：把文本与已加载的词典交给 SmartDetect，渲染可识别的编码栏目
     function updateSmartDetection(text) {
         if (typeof SmartDetect !== 'undefined') {
-            SmartDetect.render(smartDetectBody, text);
+            SmartDetect.render(smartDetectBody, text, smartWordDict);
         }
     }
+
     // @anchor: script_smart_detect_end
 
 
-    // @anchor: script_input_events
+    // @anchor: script_word_dict
+    // 按需加载分层词典（resources/words-tiered.txt，每 5k 词一档）供智能识别的「A1Z26 分段匹配」使用；
+    // 分层词典加载失败则回退到 yawl-all.txt（单档），全部失败时静默降级
+    var smartWordDict = null;          // WordFinder.parseTieredDictionary 的分层结果 [{tier, words:Set}]
+    var smartWordDictFailed = false;   // 加载失败标记（如 file:// 打开）
 
-    // 文本输入事件：字符计数/限长与清空，触发全部密码刷新与半智能识别
-    function onInputChange() {
-        var value = textInput.value;
-        var len = value.length;
-        charCount.textContent = len + ' / ' + MAX_LEN;
-
-        if (len > MAX_LEN) {
-            textInput.value = value.slice(0, MAX_LEN);
-            charCount.textContent = MAX_LEN + ' / ' + MAX_LEN;
+    function loadSmartWordDict() {
+        if (typeof WordFinder === 'undefined' || typeof fetch !== 'function') {
+            smartWordDictFailed = true;
+            return;
         }
 
-        updateAllCiphers(textInput.value);
-        updateSmartDetection(textInput.value);
+        function fetchText(url) {
+            return fetch(url, { cache: 'force-cache' }).then(function (resp) {
+                if (!resp.ok) { throw new Error('HTTP ' + resp.status); }
+                return resp.text();
+            });
+        }
+
+        fetchText('resources/words-tiered.txt')
+            .then(function (text) {
+                smartWordDict = WordFinder.parseTieredDictionary(text, 2, 64);
+                updateSmartDetection(textInput.value);   // 词典就绪后重算当前输入
+            })
+            .catch(function () {
+                // 回退：整部 YAWL 词表当作单档（无频率分层）
+                return fetchText('resources/yawl-all.txt').then(function (text) {
+                    smartWordDict = [WordFinder.parseDictionary(text, 2, 64)];
+                    updateSmartDetection(textInput.value);
+                });
+            })
+            .catch(function () {
+                smartWordDictFailed = true;
+            });
+    }
+
+    // @anchor: script_word_dict_end
+
+
+    // @anchor: script_input_events
+    // 文本输入事件：更新字符计数与清空，触发全部密码刷新与半智能识别（不设长度上限）
+    function onInputChange() {
+        var value = textInput.value;
+        charCount.textContent = value.length + ' 字符';
+        updateAllCiphers(value);
+        updateSmartDetection(value);
     }
 
     function onClear() {
         textInput.value = '';
-        charCount.textContent = '0 / ' + MAX_LEN;
+        charCount.textContent = '0 字符';
         updateAllCiphers('');
         updateSmartDetection('');
         textInput.focus();
@@ -499,8 +527,7 @@
     // @anchor: script_input_events_end
 
     // @anchor: script_init
-
-    // 初始化：默认文本模式、刷新各输入区，并延迟载入示例 "HELLO"
+    // 初始化：默认文本模式、按需加载词典、刷新各输入区，并延迟载入示例 "HELLO"
     // 默认显示文本输入模式
     switchMode('text');
     updateAllCiphers('');
@@ -508,11 +535,14 @@
     updateBrailleInputUI();
     updateSemaphoreUI();
 
+    // 加载词典（供智能识别的 A1Z26 分段匹配）
+    loadSmartWordDict();
+
     // 加载后自动展示示例
     setTimeout(function () {
         if (textInput.value === '') {
             textInput.value = 'HELLO';
-            charCount.textContent = '5 / ' + MAX_LEN;
+            charCount.textContent = '5 字符';
             updateAllCiphers('HELLO');
             updateSmartDetection('HELLO');
         }

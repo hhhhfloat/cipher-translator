@@ -61,5 +61,32 @@
 <!-- @anchor: log_006_end -->
 
 
+<!-- @anchor: log_007 -->
+# [本次] 智能识别：自动择优 + 并列按钮 + 无空格数字串词典分段
+- `modules/smart-detect.js` 新增 `smart_detect_digitwords` 区块：`findDigitWords()` 对「无空格、纯数字、长度 > 5」的整串做 DFS 枚举所有 1–2 位 A1Z26 分段（剪枝：剩余每位至少 1 字母、超出词长上限即回溯，长度 ≤ 48、解数 ≤ 12），仅当整串恰能译成词典词时返回；`buildDigitWords()` 生成「A1Z26 分段匹配」栏目。
+- `detect()` 增加 `dict` 参数与词典分段判定（仅单个 token 时尝试）；`render()`/`renderItem()` 重构：过滤「可解码 token 占比 ≤ 1/2」的候选、自动选中「译出字母最多」的一项，多候选与栏内进制视图一律改用并列小按钮（`.smart-tab`）切换，不再使用 `<select>` 下拉框。
+- `script.js` 新增 `script_word_dict` 区块：`loadSmartWordDict()` 异步 `fetch` `resources/yawl-all.txt` → `WordFinder.parseDictionary`，词典就绪后重算当前输入；`updateSmartDetection()` 传入词典；`script_init` 调用加载。
+- 页面与样式：`index.html` 引入 `modules/word-finder.js`，更新文本输入提示与智能识别区说明及占位示例；`style.css` 的 `css_smart_detect` 区块删除下拉框样式，新增 `.smart-tabs` / `.smart-tab` / `.smart-tab-sm` 并列按钮样式。
+- 自测：`tmp/test-smart-detect.js` 扩至 55 项断言（新增分段匹配、过滤与自动择优、按钮切换用例）；新增 `tmp/test-integration.js`（最小 DOM 桩串联全部主页脚本，含 fetch 词典加载链路）8 项断言、`tmp/check-syntax.js` 全脚本语法校验，均通过。
+- 文档：`PROJECT.md` 架构 / 决策 / 约定 / 限制同步（分段成词、择优 + 按钮、脚本加载顺序、词典双处引用等）。
+<!-- @anchor: log_007_end -->
+
+
+## [本次] 去除文本输入长度限制 & A1Z26 无空格数字串递归分段
+- **去除长度限制**：`script.js` 删除 `MAX_LEN` 常量与所有截断逻辑，`appendToTextInput()` 不再限长、`onInputChange()`/`onClear()` 的字符计数改为「N 字符」；`index.html` 移除 `maxlength="120"` 与「0 / 120」，提示文案标注「输入不设长度上限」。
+- **A1Z26 分段升级（同时优化）**：重写 `modules/smart-detect.js` 的 `smart_detect_digitwords` 区块——从头部取「能译成词典词」的子串并递归分解剩余部分；以词典最长词作为单个词的枚举长度上限；新增 `getDictCtx()`（按词典对象用 `WeakMap` 缓存最长词长度与词前缀集合）与 `wordBlocksAt()`（词前缀集合剪枝，抑制组合爆炸）；`buildDigitWords()` 改为以栏内多视图（`views`）呈现多解，段数少优先。例：`91419945` → `INSIDE`（单段）与 `IN SIDE`（`in` + `side`）。
+- **词典加载**：`script.js` 的 `loadSmartWordDict()` 由 `parseDictionary(text, 3, 24)` 改为 `parseDictionary(text, 2, 64)`（保留 2 字母词并覆盖最长词）。
+- **测试**：`tmp/test-smart-detect.js`（66 断言）与 `tmp/test-integration.js`（12 断言）全绿，含 `91419945` 多解、无法成词负例、全 1 长串不卡死、长输入不截断等用例。
+
+## [本次] resources 优化：20k 词表按频率分层 + 分段检索短词限最高频档
+- **新增素材**：临时脚本 `tmp/build-tiered-words.js` 读取 `resources/20k.txt`（20000 词，全为纯小写字母、无重复、无超长词），按使用频率每 5000 词一档写入新文件 `resources/words-tiered.txt`——以 `# tier=N a-b` 注释行标记 4 个档位，行序即频率序。`20k.txt` 原文件未被改动。
+- **词典解析**：`modules/word-finder.js` 新增 `word_finder_parse_tiered` 区块 `parseTieredDictionary(text, minLen, maxLen)`：解析分层词表为 `[{tier, words:Set}]`；无 `# tier` 标记的纯词表整体视为单档（兼容 `yawl-all.txt` 回退）；已加入 `WordFinder` 导出。
+- **分段检索升级**：`modules/smart-detect.js` 的 `smart_detect_digitwords` 区块重写——`dictTiers()` 归一化词典为分层数组；`getDictCtx()` 构建「可分词集合 + 词→最低档位 + 词前缀集合 + 最长词长度」；**长度 ≤ 3 的短词只取自第 1 档（前 5k 高频词）**（常量 `SHORT_WORD_MAX_LEN` / `SHORT_WORD_TIERS`），≥4 字母词不限档；`wordBlocksAt()` 按「档位靠前优先、同档取更长」枚举分段，`findDigitWords()` 结果按「段数少 → 来源档位和更小 → 字母更多」排序（仍以词典最长词为单词枚举上限、前缀集合剪枝 + 节点预算）。
+- **加载链路**：`script.js` 的 `loadSmartWordDict()` 改为 `fetch resources/words-tiered.txt` → `parseTieredDictionary(…, 2, 64)`；失败回退 `yawl-all.txt`（单档），仍失败静默降级。
+- **效果**：`91419945` 在分层词典下给出 `INSIDE` / `IN SIDE`，且不再出现 `yawl-all` 中的 `INS IDE` 噪声命中；高频短词（`in` 等）仍可参与分段。
+- **测试**：新增 `tmp/test-tiered-words.js`（23 断言：分层解析计数、短词档位限制、档位 / 段数排序、单档 Set 回退）；`tmp/test-smart-detect.js`（66 断言，词典改用分层文件）、`tmp/test-integration.js`（14 断言，fetch 改为 URL 感知、校验实际请求 `words-tiered.txt` 且无 `INS IDE`）与 `tmp/check-syntax.js` 全部通过。
+- **文档**：`PROJECT.md` 架构（resources 层、词典加载流）、决策（频率分层、短词限档、排序规则）、限制同步。
+
+
 <!-- @anchor: update_record_anchor -->
 <!-- 追加区：后续新记录统一插入本锚点之前 -->
