@@ -1249,15 +1249,14 @@ body {
 /* @anchor: css_tapcode_view_end */
 
 /* @anchor: css_semaphore_view */
-/* 旗语输出卡片样式：Canvas 双臂（持旗）图排列 */
+/* 旗语输出卡片样式：紧凑网格排列的 Canvas 双臂（持旗）图，压缩卡片占比 */
 /* ============================================
    旗语样式
    ============================================ */
 .semaphore-figures-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    align-items: flex-end;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, 58px);
+    gap: 4px;
     justify-content: flex-start;
 }
 
@@ -1265,35 +1264,34 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
+    gap: 0;
     background: #fdfaf8;
     border-radius: var(--radius-sm);
-    padding: 4px 6px;
+    padding: 2px;
     border: 1px solid #f0e8e0;
 }
 
 .semaphore-canvas {
     display: block;
+    width: 54px;
+    height: 54px;
 }
 
 .semaphore-char-label {
-    font-size: 0.75rem;
+    font-size: 0.62rem;
+    line-height: 1.1;
     font-weight: 600;
     color: var(--text-muted);
 }
 
 .semaphore-space,
 .semaphore-unknown {
-    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 54px;
+    font-size: 0.75rem;
     color: #bbb;
-    padding: 20px 8px;
-}
-
-.semaphore-more {
-    align-self: center;
-    font-size: 0.85rem;
-    color: var(--text-muted);
-    margin-left: 8px;
 }
 
 /* @anchor: css_semaphore_view_end */

@@ -150,10 +150,10 @@ const SemaphoreCipher = (() => {
     // @anchor: semaphore_draw_arm_end
 
     // @anchor: semaphore_render
-    // 在容器中渲染旗语可视化：每个字母一张双臂 Canvas 图（最多 16 个）
+    // 在容器中渲染旗语可视化：每个字符一张双臂 Canvas 图（完整渲染，不截断）
     function render(container, text) {
         container.innerHTML = '';
-        const upperText = text.toUpperCase();
+        const upperText = String(text == null ? '' : text).toUpperCase();
         const chars = upperText.split('');
 
         if (chars.length === 0 || (chars.length === 1 && chars[0] === '')) {
@@ -161,19 +161,17 @@ const SemaphoreCipher = (() => {
             return;
         }
 
-        const displayChars = chars.slice(0, 16);
-
         const figuresRow = document.createElement('div');
         figuresRow.className = 'semaphore-figures-row';
 
-        for (const ch of displayChars) {
+        for (const ch of chars) {
             const wrapper = document.createElement('div');
             wrapper.className = 'semaphore-figure-wrapper';
 
             if (CipherData.semaphore[ch]) {
                 const canvas = document.createElement('canvas');
-                canvas.width = 72;
-                canvas.height = 72;
+                canvas.width = 54;
+                canvas.height = 54;
                 canvas.className = 'semaphore-canvas';
                 const [r, l] = CipherData.semaphore[ch];
                 drawArms(canvas, r, l);
@@ -194,15 +192,9 @@ const SemaphoreCipher = (() => {
             figuresRow.appendChild(wrapper);
         }
 
-        if (chars.length > 16) {
-            const more = document.createElement('span');
-            more.className = 'semaphore-more';
-            more.textContent = '…(+' + (chars.length - 16) + '个字符)';
-            figuresRow.appendChild(more);
-        }
-
         container.appendChild(figuresRow);
     }
+
     // @anchor: semaphore_render_end
 
     // @anchor: semaphore_export

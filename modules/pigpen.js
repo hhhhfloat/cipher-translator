@@ -191,9 +191,7 @@ const PigpenCipher = (() => {
     // @anchor: pigpen_glyph_svg_end
 
     // @anchor: pigpen_render
-    // 渲染卡片：每个字符一张字形 SVG + 字母标签（空格 / 未知字符占位；最多 40 个字符）
-    const MAX_CHARS = 40;
-
+    // 渲染卡片：每个字符一张字形 SVG + 字母标签（空格 / 未知字符占位；完整渲染，不截断）
     function render(container, text) {
         container.innerHTML = '';
         const upper = String(text == null ? '' : text).toUpperCase();
@@ -202,7 +200,7 @@ const PigpenCipher = (() => {
             return;
         }
 
-        const chars = upper.split('').slice(0, MAX_CHARS);
+        const chars = upper.split('');
         const row = document.createElement('div');
         row.className = 'pigpen-figures-row';
 
@@ -229,15 +227,9 @@ const PigpenCipher = (() => {
             row.appendChild(wrapper);
         });
 
-        if (upper.length > chars.length) {
-            const more = document.createElement('span');
-            more.className = 'pigpen-more';
-            more.textContent = '…(+' + (upper.length - chars.length) + '个字符)';
-            row.appendChild(more);
-        }
-
         container.appendChild(row);
     }
+
     // @anchor: pigpen_render_end
 
     // @anchor: pigpen_export

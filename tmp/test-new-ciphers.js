@@ -193,7 +193,7 @@ eq(rows2[1].values.join(' '), '00001 ? 00010', '五位二进制行对非字母�
 eq(rows2[2].values.join(' '), '1000001 0100000 1000010', '七位二进制行给出空格码值 32 = 0100000');
 eq(rows2[4].values.join(' '), '41 20 42', '空格码值 20（十六进制）');
 const rowsLong = NumeralCipher.rows(new Array(51).join('A'));
-eq(rowsLong[0].values.length, 40, '最多展示 40 个字符');
+eq(rowsLong[0].values.length, 50, '不截断：50 个字符全部展示');
 
 // ===== 汇总 =====
 console.log('\n===== 新增密码模块自测 =====');

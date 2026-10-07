@@ -423,19 +423,19 @@
   }, {
     "id" : "ascii_render",
     "line" : 41,
-    "desc" : "渲染卡片：十进制码值行 + 逐字符「字符 → 码值」卡片（空格 / 不可打印以占位显示；最多 40 个字符）",
+    "desc" : "渲染卡片：十进制码值行 + 逐字符「字符 → 码值」卡片（空格 / 不可打印以占位显示；完整渲染，不截断）",
     "symbol" : "render"
   }, {
     "id" : "ascii_render_end",
-    "line" : 100,
+    "line" : 92,
     "desc" : ""
   }, {
     "id" : "ascii_export",
-    "line" : 102,
+    "line" : 94,
     "desc" : "浏览器把模块暴露为全局 AsciiCipher；Node 自测时额外走 module 导出，对页面无副作用"
   }, {
     "id" : "ascii_export_end",
-    "line" : 107,
+    "line" : 99,
     "desc" : ""
   } ],
   "modules/braille.js" : [ {
@@ -576,19 +576,19 @@
   }, {
     "id" : "morse_render",
     "line" : 58,
-    "desc" : "渲染卡片：整串点划结果行 + 逐字符「字符 → 点划」chips（最多 24 个字符）",
+    "desc" : "渲染卡片：整串点划结果行 + 逐字符「字符 → 点划」chips（完整渲染，不截断）",
     "symbol" : "render"
   }, {
     "id" : "morse_render_end",
-    "line" : 118,
+    "line" : 110,
     "desc" : ""
   }, {
     "id" : "morse_export",
-    "line" : 120,
+    "line" : 112,
     "desc" : "浏览器把模块暴露为全局 MorseCipher；Node 自测时额外走 module 导出，对页面无副作用"
   }, {
     "id" : "morse_export_end",
-    "line" : 125,
+    "line" : 117,
     "desc" : ""
   } ],
   "modules/nato-phonetic.js" : [ {
@@ -684,29 +684,29 @@
   }, {
     "id" : "numeral_rows",
     "line" : 82,
-    "desc" : "构造展示行：字符行 + 四个进制行（每行左补零到「本行最大位宽」与「该行最小位宽」的较大者）",
+    "desc" : "构造展示行：字符行 + 四个进制行（每行左补零到「本行最大位宽」与「该行最小位宽」的较大者；完整渲染，不截断）",
     "symbol" : "rows"
   }, {
     "id" : "numeral_rows_end",
-    "line" : 114,
+    "line" : 115,
     "desc" : "",
     "symbol" : "render"
   }, {
     "id" : "numeral_render",
-    "line" : 116,
-    "desc" : "渲染卡片：每行「标签 + 对齐后的码值」，末尾附说明文案",
+    "line" : 117,
+    "desc" : "渲染卡片：每行「标签 + 对齐后的码值」，末尾附说明文案（完整渲染，不截断）",
     "symbol" : "render"
   }, {
     "id" : "numeral_render_end",
-    "line" : 158,
+    "line" : 156,
     "desc" : ""
   }, {
     "id" : "numeral_export",
-    "line" : 160,
+    "line" : 158,
     "desc" : "浏览器把模块暴露为全局 NumeralCipher；Node 自测时额外走 module 导出，对页面无副作用"
   }, {
     "id" : "numeral_export_end",
-    "line" : 165,
+    "line" : 163,
     "desc" : ""
   } ],
   "modules/pigpen.js" : [ {
@@ -767,19 +767,19 @@
   }, {
     "id" : "pigpen_render",
     "line" : 193,
-    "desc" : "渲染卡片：每个字符一张字形 SVG + 字母标签（空格 / 未知字符占位；最多 40 个字符）",
+    "desc" : "渲染卡片：每个字符一张字形 SVG + 字母标签（空格 / 未知字符占位；完整渲染，不截断）",
     "symbol" : "render"
   }, {
     "id" : "pigpen_render_end",
-    "line" : 241,
+    "line" : 233,
     "desc" : ""
   }, {
     "id" : "pigpen_export",
-    "line" : 243,
+    "line" : 235,
     "desc" : "浏览器把模块暴露为全局 PigpenCipher；Node 自测时额外走 module 导出，对页面无副作用"
   }, {
     "id" : "pigpen_export_end",
-    "line" : 251,
+    "line" : 243,
     "desc" : ""
   } ],
   "modules/semaphore.js" : [ {
@@ -860,19 +860,19 @@
   }, {
     "id" : "semaphore_render",
     "line" : 152,
-    "desc" : "在容器中渲染旗语可视化：每个字母一张双臂 Canvas 图（最多 16 个）",
+    "desc" : "在容器中渲染旗语可视化：每个字符一张双臂 Canvas 图（完整渲染，不截断）",
     "symbol" : "render"
   }, {
     "id" : "semaphore_render_end",
-    "line" : 206,
+    "line" : 198,
     "desc" : ""
   }, {
     "id" : "semaphore_export",
-    "line" : 208,
+    "line" : 200,
     "desc" : "浏览器把模块暴露为全局 SemaphoreCipher；Node 自测时额外走 module 导出，对页面无副作用"
   }, {
     "id" : "semaphore_export_end",
-    "line" : 213,
+    "line" : 205,
     "desc" : ""
   } ],
   "modules/smart-detect.js" : [ {
@@ -1157,31 +1157,31 @@
     "desc" : "# 关键决策"
   }, {
     "id" : "proj_decisions_end",
-    "line" : 95,
+    "line" : 96,
     "desc" : ""
   }, {
     "id" : "proj_conventions",
-    "line" : 97,
+    "line" : 98,
     "desc" : ""
   }, {
     "id" : "proj_conventions_end",
-    "line" : 110,
+    "line" : 111,
     "desc" : ""
   }, {
     "id" : "proj_limits",
-    "line" : 112,
+    "line" : 113,
     "desc" : ""
   }, {
     "id" : "proj_limits_end",
-    "line" : 136,
+    "line" : 137,
     "desc" : ""
   }, {
     "id" : "proj_start",
-    "line" : 138,
+    "line" : 139,
     "desc" : "# 启动方式"
   }, {
     "id" : "proj_start_end",
-    "line" : 149,
+    "line" : 150,
     "desc" : ""
   } ],
   "script.js" : [ {
@@ -1465,91 +1465,91 @@
   }, {
     "id" : "css_semaphore_view",
     "line" : 1251,
-    "desc" : "旗语输出卡片样式：Canvas 双臂（持旗）图排列",
+    "desc" : "旗语输出卡片样式：紧凑网格排列的 Canvas 双臂（持旗）图，压缩卡片占比",
     "symbol" : ".semaphore-figures-row"
   }, {
     "id" : "css_semaphore_view_end",
-    "line" : 1299,
+    "line" : 1297,
     "desc" : "",
     "symbol" : ".nato-cards-row"
   }, {
     "id" : "css_nato_view",
-    "line" : 1301,
+    "line" : 1299,
     "desc" : "北约音标输出卡片样式",
     "symbol" : ".nato-cards-row"
   }, {
     "id" : "css_nato_view_end",
-    "line" : 1342,
+    "line" : 1340,
     "desc" : "",
     "symbol" : ".morse-code-row"
   }, {
     "id" : "css_morse_view",
-    "line" : 1344,
+    "line" : 1342,
     "desc" : "摩斯电码卡片样式：点划结果行 + 逐字符点划 chips",
     "symbol" : ".morse-code-row"
   }, {
     "id" : "css_morse_view_end",
-    "line" : 1400,
+    "line" : 1398,
     "desc" : "",
     "symbol" : ".pigpen-figures-row"
   }, {
     "id" : "css_pigpen_view",
-    "line" : 1402,
+    "line" : 1400,
     "desc" : "猪圈密码卡片样式：逐字符字形 SVG + 字母标签",
     "symbol" : ".pigpen-figures-row"
   }, {
     "id" : "css_pigpen_view_end",
-    "line" : 1459,
+    "line" : 1457,
     "desc" : "",
     "symbol" : ".ascii-code-row"
   }, {
     "id" : "css_ascii_view",
-    "line" : 1461,
+    "line" : 1459,
     "desc" : "ASCII 码卡片样式：十进制码值行 + 逐字符「字符 → 码值」卡片",
     "symbol" : ".ascii-code-row"
   }, {
     "id" : "css_ascii_view_end",
-    "line" : 1518,
+    "line" : 1516,
     "desc" : "",
     "symbol" : ".numeral-rows"
   }, {
     "id" : "css_numeral_view",
-    "line" : 1520,
+    "line" : 1518,
     "desc" : "进制卡片样式：每行「进制标签 + 左补零对齐后的码值」",
     "symbol" : ".numeral-rows"
   }, {
     "id" : "css_numeral_view_end",
-    "line" : 1562,
+    "line" : 1560,
     "desc" : "",
     "symbol" : ".translate-jump"
   }, {
     "id" : "css_translate",
-    "line" : 1565,
+    "line" : 1563,
     "desc" : "翻译跳转：成词/词组的输入或识别结果旁的小按钮，点击跳转百度翻译查看中文含义",
     "symbol" : ".translate-jump"
   }, {
     "id" : "css_translate_end",
-    "line" : 1614,
+    "line" : 1612,
     "desc" : "",
     "symbol" : ".site-footer"
   }, {
     "id" : "css_footer",
-    "line" : 1617,
+    "line" : 1615,
     "desc" : "页脚",
     "symbol" : ".site-footer"
   }, {
     "id" : "css_footer_end",
-    "line" : 1628,
+    "line" : 1626,
     "desc" : "",
     "symbol" : ".ciphers-grid"
   }, {
     "id" : "css_responsive",
-    "line" : 1630,
+    "line" : 1628,
     "desc" : "响应式：窄屏下网格单列、输入区纵向排列并缩小控件",
     "symbol" : ".ciphers-grid"
   }, {
     "id" : "css_responsive_end",
-    "line" : 1795,
+    "line" : 1793,
     "desc" : ""
   } ],
   "tmp/audit-static.js" : [ {
@@ -1724,8 +1724,16 @@
     "line" : 197,
     "desc" : ""
   }, {
-    "id" : "update_record_anchor",
+    "id" : "log_021",
     "line" : 199,
+    "desc" : "[本次] 旗语卡片紧凑化（缩小画布 + 网格排版）并取消全部翻译结果的截断"
+  }, {
+    "id" : "log_021_end",
+    "line" : 206,
+    "desc" : ""
+  }, {
+    "id" : "update_record_anchor",
+    "line" : 209,
     "desc" : "追加区：后续新记录统一插入本锚点之前"
   } ]
 }

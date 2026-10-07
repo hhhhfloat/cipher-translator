@@ -39,9 +39,7 @@ const AsciiCipher = (() => {
     // @anchor: ascii_decode_end
 
     // @anchor: ascii_render
-    // 渲染卡片：十进制码值行 + 逐字符「字符 → 码值」卡片（空格 / 不可打印以占位显示；最多 40 个字符）
-    const MAX_CHARS = 40;
-
+    // 渲染卡片：十进制码值行 + 逐字符「字符 → 码值」卡片（空格 / 不可打印以占位显示；完整渲染，不截断）
     function render(container, text) {
         container.innerHTML = '';
         const raw = String(text == null ? '' : text);
@@ -50,7 +48,7 @@ const AsciiCipher = (() => {
             return;
         }
 
-        const chars = raw.split('').slice(0, MAX_CHARS);
+        const chars = raw.split('');
 
         const codeRow = document.createElement('div');
         codeRow.className = 'ascii-code-row';
@@ -89,14 +87,8 @@ const AsciiCipher = (() => {
         });
 
         container.appendChild(cardsRow);
-
-        if (raw.length > chars.length) {
-            const more = document.createElement('span');
-            more.className = 'ascii-more';
-            more.textContent = '…(+' + (raw.length - chars.length) + '个字符)';
-            cardsRow.appendChild(more);
-        }
     }
+
     // @anchor: ascii_render_end
 
     // @anchor: ascii_export

@@ -196,5 +196,15 @@
 - **文档**：`PROJECT.md` 的架构（新增 `word-seed` 层、词典加载流改为三级回退、键盘流改为捕获阶段、新增卡片隔离流）、关键决策（三级回退 / no-cache / 内容校验 / 渲染隔离 / 捕获阶段）、规范约定（脚本顺序与词典请求约定）、已知限制（托管注意事项与降级行为）与启动方式（新增「静态托管（GitHub Pages）」一节）同步；锚点索引重建。
 <!-- @anchor: log_020_end -->
 
+<!-- @anchor: log_021 -->
+# [本次] 旗语卡片紧凑化（缩小画布 + 网格排版）并取消全部翻译结果的截断
+- **需求**：缩小旗语翻译结果绘制的占据空间（更紧密排列或缩小实际大小），且任何翻译结果都不得截断。
+- **旗语卡片紧凑化**：`modules/semaphore.js` 的画布由 72×72 缩至 54×54（`drawArms` 按画布宽度比例缩放，自动适配）；`style.css` 的 `css_semaphore_view` 由 flex 换行改为紧凑网格（`grid-template-columns: repeat(auto-fill, 58px)`、`gap` 4px、wrapper 内边距 2px、标签字号 0.62rem、空格 / 未知占位改 `min-height`），卡片占比明显下降。
+- **取消截断**：移除旗语 16 字符上限（原 `slice(0,16)` 与「…(+N个字符)」提示）、ASCII 40、摩斯 24、猪圈 40、进制 40（`numeral` 的 `MAX_CHARS`）等全部长度上限，五类卡片一律完整渲染全部字符。
+- **自测**：新增 `tmp/test-no-truncation.js`（16 项：旗语 26 字符全渲染 / 无 more 提示 / 画布 54px、ASCII 52、摩斯 26、猪圈 40、进制 52 均全渲染）；更新 `tmp/test-new-ciphers.js`（进制行数断言 40 → 50，改为「不截断：50 个字符全部展示」，共 116 项）；`test-integration`（86）、`test-smart-detect`（90）、`test-translate-link`（36）、`test-tiered-words`（23）、`test-static-fallback`（19）、`check-syntax`（17 文件）、`check-css`、`audit-static` 全绿。
+- **文档**：`PROJECT.md` 关键决策新增「旗语只画双臂 + 卡片紧凑化」「翻译结果不截断」，已知限制同步（画布 54×54、取消视觉裁剪、长输入的渲染代价）；锚点索引重建。
+<!-- @anchor: log_021_end -->
+
+
 <!-- @anchor: update_record_anchor -->
 <!-- 追加区：后续新记录统一插入本锚点之前 -->

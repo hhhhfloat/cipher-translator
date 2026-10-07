@@ -19,7 +19,7 @@ const NumeralCipher = (() => {
         { base: 8, label: '八进制', pad: 3, source: 'ascii' },
         { base: 16, label: '十六进制', pad: 2, source: 'ascii' }
     ];
-    const MAX_CHARS = 40;
+
     // @anchor: numeral_bases_end
 
     // @anchor: numeral_convert
@@ -80,9 +80,9 @@ const NumeralCipher = (() => {
     // @anchor: numeral_decode_end
 
     // @anchor: numeral_rows
-    // 构造展示行：字符行 + 四个进制行（每行左补零到「本行最大位宽」与「该行最小位宽」的较大者）
+    // 构造展示行：字符行 + 四个进制行（每行左补零到「本行最大位宽」与「该行最小位宽」的较大者；完整渲染，不截断）
     function rows(text) {
-        const chars = String(text == null ? '' : text).split('').slice(0, MAX_CHARS);
+        const chars = String(text == null ? '' : text).split('');
 
         const out = [{
             label: '字符',
@@ -111,10 +111,11 @@ const NumeralCipher = (() => {
 
         return out;
     }
+
     // @anchor: numeral_rows_end
 
     // @anchor: numeral_render
-    // 渲染卡片：每行「标签 + 对齐后的码值」，末尾附说明文案
+    // 渲染卡片：每行「标签 + 对齐后的码值」，末尾附说明文案（完整渲染，不截断）
     function render(container, text) {
         container.innerHTML = '';
         const raw = String(text == null ? '' : text);
@@ -150,11 +151,8 @@ const NumeralCipher = (() => {
         hint.className = 'numeral-hint';
         hint.textContent = '按字符换算并对齐：五位二进制取自 A1Z26（字母 A=1…Z=26），七位二进制 / 八进制 / 十六进制取自 ASCII 码值，位数左补零';
         container.appendChild(hint);
-
-        if (raw.length > MAX_CHARS) {
-            hint.textContent += '　…(+' + (raw.length - MAX_CHARS) + '个字符)';
-        }
     }
+
     // @anchor: numeral_render_end
 
     // @anchor: numeral_export

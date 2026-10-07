@@ -56,9 +56,7 @@ const MorseCipher = (() => {
     // @anchor: morse_decode_end
 
     // @anchor: morse_render
-    // 渲染卡片：整串点划结果行 + 逐字符「字符 → 点划」chips（最多 24 个字符）
-    const MAX_CHARS = 24;
-
+    // 渲染卡片：整串点划结果行 + 逐字符「字符 → 点划」chips（完整渲染，不截断）
     function render(container, text) {
         container.innerHTML = '';
         const upper = String(text == null ? '' : text).toUpperCase();
@@ -67,7 +65,7 @@ const MorseCipher = (() => {
             return;
         }
 
-        const chars = upper.split('').slice(0, MAX_CHARS);
+        const chars = upper.split('');
 
         const codeRow = document.createElement('div');
         codeRow.className = 'morse-code-row';
@@ -107,14 +105,8 @@ const MorseCipher = (() => {
         });
 
         container.appendChild(chips);
-
-        if (upper.length > chars.length) {
-            const more = document.createElement('span');
-            more.className = 'morse-more';
-            more.textContent = '…(+' + (upper.length - chars.length) + '个字符)';
-            chips.appendChild(more);
-        }
     }
+
     // @anchor: morse_render_end
 
     // @anchor: morse_export
