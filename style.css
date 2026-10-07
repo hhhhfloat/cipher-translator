@@ -1204,7 +1204,7 @@ body {
 /* @anchor: css_tapcode_view_end */
 
 /* @anchor: css_semaphore_view */
-/* 旗语输出卡片样式：Canvas 人物图排列 */
+/* 旗语输出卡片样式：Canvas 双臂（持旗）图排列 */
 /* ============================================
    旗语样式
    ============================================ */
@@ -1223,7 +1223,7 @@ body {
     gap: 4px;
     background: #fdfaf8;
     border-radius: var(--radius-sm);
-    padding: 6px 8px;
+    padding: 4px 6px;
     border: 1px solid #f0e8e0;
 }
 
@@ -1241,7 +1241,7 @@ body {
 .semaphore-unknown {
     font-size: 0.85rem;
     color: #bbb;
-    padding: 30px 8px;
+    padding: 20px 8px;
 }
 
 .semaphore-more {
@@ -1250,6 +1250,7 @@ body {
     color: var(--text-muted);
     margin-left: 8px;
 }
+
 /* @anchor: css_semaphore_view_end */
 
 /* @anchor: css_nato_view */

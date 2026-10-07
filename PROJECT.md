@@ -14,7 +14,8 @@
 - `cipher-data.js`：数据层，`CipherData` 集中存放盲文点阵与旗语方向对两类映射，改数据即改规则。
 - `modules/*.js`：算法层，每个密码一个 IIFE 模块（braille / a1z26 / tapcode / semaphore / nato-phonetic）。
 - `script.js`：协调层，缓存 DOM、管理模式切换与四种输入状态，把文本分发给各模块渲染。
-- `caesar.html` / `caesar.css` / `caesar.js`：凯撒移位页面（原独立项目 `caesar-shift` 并入），与主页同目录，展示 ROT1~ROT25 全部移位，与主页双向导航。
+- `resources/`：素材层，用户提供的词表/字表文本（`yawl-all.txt` 为 YAWL 英文词表，每行一词）；仅被凯撒页的隐藏玩法按需读取，程序逻辑不依赖它。
+- `caesar.html` / `caesar.css` / `caesar.js`：凯撒移位页面（原独立项目 `caesar-shift` 并入），与主页同目录，展示 ROT1~ROT25 全部移位，与主页双向导航；页面内置隐藏玩法「词典词标记」。
 
 ### 数据流
 文本输入（或盲文/A1Z26/旗语解码得到字母并追加到文本框）→ `input` 事件 → `updateAllCiphers()` → 分别调用五模块的 `render()` → 写入各自输出容器。
@@ -23,8 +24,10 @@
 每个密码模块返回 `{ encode, decode, render }`：`encode(text)` 编码字符串、`decode(encoded)` 解码字符串、`render(container, text)` 在容器内渲染可视化（盲文模块额外提供 `getDots`，旗语模块额外提供 `toMask` 与 `reverseMap`）。
 - `modules/cantor.js`：映射工具层，把 `1234` 的 24 种排列按升序映射到 `A`–`X`（康托展开），供智能识别调用。
 - `modules/smart-detect.js`：启发式识别层，分析文本输入（摩斯 / 五位二进制 / 三进制 / A1Z26 / 敲击码 / ASCII / 康托展开）并在文本输入块内渲染可切换栏目。
+- `modules/word-finder.js`：词典工具层，把词表文本解析为词集合，并在文本中按「最左最长」匹配出词与字符区间；纯逻辑、与 DOM 无关，供凯撒页隐藏玩法使用。
 
 - 智能识别流：文本 → `updateSmartDetection()` → `SmartDetect.detect()` 判定 → `render()` 在 `#smartDetectBody` 渲染栏目（多于一项时下拉切换）。
+- 词典标记流：凯撒页输入文本 → `renderResults()` 逐 ROT 移位调用 `WordFinder.findWords()` → 命中词高亮、命中行置顶。
 
 
 <!-- @anchor: proj_arch_end -->
@@ -42,6 +45,9 @@
 - **敲击码只留紧凑映射**：输出卡片去除大体积的 5×5 方格预览，改为一行「字母 → 行,列」紧凑 chips，兼顾可读性与空间占用。
 
 
+- **旗语只画双臂**：Canvas 不再绘制人物头部（圆形）与身体（竖线），只画两条持旗手臂，画布随之缩为 72×72；视觉主体回归信号形状本身。
+- **凯撒页隐藏玩法——词典词标记**：凯撒页按需加载 `resources/yawl-all.txt` 建词集合，对每个 ROT 结果做「最左最长」词匹配；命中可信（得分 ≥ 2）的词在结果内高亮、该行置顶（得分降序，同分按移位量升序）。界面不宣传该功能，双击页面标题即可开关；词典不可用时静默降级为普通结果表，不影响其它功能。
+
 <!-- @anchor: proj_decisions_end -->
 
 <!-- @anchor: proj_conventions -->
@@ -55,6 +61,8 @@
 - 用户可见文案中空格用 `␣`、旗语空格用 `·` 表示，保持各卡片视觉一致。
 - `modules/` 除五个密码模块外，另含映射工具 `cantor.js` 与启发式识别 `smart-detect.js`；后者为纯判定 + 渲染，不接入五卡片渲染循环，由 `script.js` 的 `updateSmartDetection()` 单独驱动。
 
+- `modules/word-finder.js` 亦属工具层，但只服务凯撒页：纯逻辑、不碰 DOM，浏览器挂全局 `WordFinder`，Node 下带 `module.exports` 便于自测。
+
 <!-- @anchor: proj_conventions_end -->
 
 <!-- @anchor: proj_limits -->
@@ -63,11 +71,13 @@
 - 全局 60 字符上限，且特殊输入的累积文本框只增不减（清空需用对应「清除翻译结果」按钮）。
 - 敲击码采用 5×5 Polybius 方格，I/J 合并，解码时 I/J 一律返回 `I/J`，无法区分。
 - 旗语方向数据为信号员自身视角的「原形态」，不做镜像翻转；若调整需同步 `cipher-data.js` 与模块方向角度常量。
+- 旗语可视化只画双臂（无头部与身体），画布 72×72；如调整手臂长度/旗子尺寸需重新确认 8 个方向都不出界。
 - 盲文为标准 6 点盲文，非 Grade 2 缩写盲文；数字、标点未建映射。
-- 视觉裁剪：敲击码逐字符映射最多显示前 40 个字符、旗语人物最多 16 个，超出部分以 `…(+N个字符)` 省略。
+- 视觉裁剪：敲击码逐字符映射最多显示前 40 个字符、旗语双臂最多 16 个，超出部分以 `…(+N个字符)` 省略。
 - 半智能识别有固有歧义：数字串可同时命中多种编码（如 `12 20 22` 既是 A1Z26 的 LTV 又是三进制的 EFH），故可能给出多解，需人工在下拉框中判断。五位二进制按「5 位一组、值域 1–26」判定，独占且不覆盖更长位宽；三进制要求各 token 仅由 0–2 组成且至少含一个 `2`，否则不判定。
 - 康托展开当前固定为 `1234` 的 24 种排列，映射字母仅 `A`–`X`，不覆盖其它数字集合。
 - 摩斯仅支持字母与数字表，符号或非法点划组合（如 `-....-`）显示为 `?`。
+- 凯撒词典标记：只匹配长度 ≥ 3 的字母串，采用最左最长匹配（不重叠）；通用词典含大量生僻词，短输入仍可能出现噪声命中（此时可用双击标题关闭）。`fetch` 受同源策略限制，直接以 `file://` 打开时词典加载失败，功能自动关闭并提示改经本地 HTTP 服务访问。
 
 
 <!-- @anchor: proj_limits_end -->
@@ -75,4 +85,6 @@
 <!-- @anchor: proj_start -->
 ## 启动方式
 无需依赖与构建：浏览器直接打开 `cipher-translator/index.html`；凯撒移位页面为同目录下的 `cipher-translator/caesar.html`，也可从主页头部「🔄 凯撒移位」按钮进入。
+凯撒页的隐藏玩法（词典词标记）需经本地 HTTP 服务访问才能读取 `resources/yawl-all.txt`，例如在 `cipher-translator` 目录执行 `python -m http.server` 后打开 `http://localhost:8000/caesar.html`；直接以 `file://` 打开时该玩法自动关闭，其余功能不受影响。
+
 <!-- @anchor: proj_start_end -->

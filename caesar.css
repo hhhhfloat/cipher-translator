@@ -315,6 +315,53 @@ body {
 .row-rot13 .shift-result {
     font-weight: 700;
 }
+/* --- 隐藏玩法：词典词标记 --- */
+.word-hint {
+    font-size: 0.82rem;
+    color: #8a7f6d;
+    background: #fbf7ef;
+    border-bottom: 1px solid #f0ebe0;
+    padding: 8px 18px;
+}
+
+/* 命中词典词的移位置顶行 */
+.results-table tbody tr.row-hasword {
+    background: #f1f8f1;
+    border-left: 3px solid #7cb87c;
+}
+
+.results-table tbody tr.row-hasword:hover {
+    background: #e7f3e7;
+}
+
+/* 结果文本内命中的词 */
+.shift-result .word-hit {
+    background: #ffe9a8;
+    border-radius: 3px;
+    padding: 0 1px;
+    font-weight: 700;
+    color: #6b4b12;
+}
+
+.word-badge-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 4px;
+}
+
+.word-chip {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: #3d6b3d;
+    background: #e4f1e4;
+    border: 1px solid #cfe3cf;
+    border-radius: 999px;
+    padding: 0 7px;
+}
+
+
 /* @anchor: caesar_css_results_end */
 
 /* @anchor: caesar_css_footer */

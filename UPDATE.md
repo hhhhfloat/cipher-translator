@@ -38,5 +38,17 @@
 <!-- @anchor: log_004_end -->
 
 
+<!-- @anchor: log_005 -->
+# [本次] 旗语只画双臂 & 凯撒页隐藏玩法「词典词标记」
+- 旗语可视化精简：`modules/semaphore.js` 去掉圆形头部与身体竖线，只保留两条持旗手臂（双臂同发自画布中心的肩点），画布由 75×95 缩为 72×72；`style.css` 的 `css_semaphore_view` 同步收紧内边距。新增 `semaphore_export` 区块（Node 自测用 module 导出，对页面无副作用）。
+- 新增 `modules/word-finder.js`（词典工具层，纯逻辑）：`parseDictionary()` 把词表解析为小写词集合，`findWords()` 在文本中按「最左最长」匹配出词及其字符区间，`scoreRanges()` 给出命中得分 `Σ(词长-2)`。
+- 凯撒页隐藏玩法 `caesar_word_dict` / `caesar_find_words` / `caesar_word_toggle`：按需 `fetch('resources/yawl-all.txt')` 建词表；每个 ROT 结果命中可信词（得分 ≥ 2，可抑制短词噪声）时，命中的词用 `<mark>` 高亮 + 行置顶（得分降序、同分按移位量升序），并在结果区顶部提示条说明命中数；双击页面标题可开关该玩法，`file://` 下词典加载失败则静默降级。
+- 页面与样式：`caesar.html` 结果区加入 `#wordHint` 提示条、脚本按序加载 `modules/word-finder.js`；`caesar.css` 的 `caesar_css_results` 新增 `.word-hint` / `.row-hasword` / `.word-hit` / `.word-chip` 样式。
+- 自测：60 项断言全部通过（word-finder 逻辑 19 项、凯撒 DOM 渲染 25 项、旗语绘制与编解码回归 16 项，均使用真实词表/最小 DOM 桩）。
+<!-- @anchor: log_005_end -->
+
+
+
+
 <!-- @anchor: update_record_anchor -->
 <!-- 追加区：后续新记录统一插入本锚点之前 -->

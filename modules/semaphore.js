@@ -1,8 +1,8 @@
 // @anchor: semaphore_intro
-// 旗语模块：8 方向双臂信号的编解码，并用 Canvas 绘制信号员人物（红蓝双臂持旗）
+// 旗语模块：8 方向双臂信号的编解码，并用 Canvas 只绘制双臂（双手持旗）以凸显信号本身
 /**
  * 旗语 (Semaphore) 模块
- * 使用 Canvas 绘制旗语信号人物：圆形头部 + 身体 + 双臂持旗
+ * 只绘制信号员的双臂与旗子：不含圆形头部，也不画身体的竖线，让密码形状成为视觉主体。
  *
  * 8个基本方向 (索引 0-7)，信号员自身视角（Canvas 坐标系）：
  *   0: 上(N), 1: 右上(NE), 2: 右(E), 3: 右下(SE),
@@ -93,46 +93,25 @@ const SemaphoreCipher = (() => {
     }
     // @anchor: semaphore_decode_end
 
-    // @anchor: semaphore_draw_figure
-    // 在单个 Canvas 上绘制旗语人物：身体 + 头部 + 双臂持旗
-    function drawFigure(canvas, rightDir, leftDir) {
+    // @anchor: semaphore_draw_arms
+    // 在单个 Canvas 上只绘制两条持旗手臂：双臂同发自画布中心的肩点，不画头部与身体
+    function drawArms(canvas, rightDir, leftDir) {
         const ctx = canvas.getContext('2d');
         const W = canvas.width;
         const H = canvas.height;
 
         ctx.clearRect(0, 0, W, H);
 
-        const cx = W / 2;
-        const cy = H * 0.28;
-        const headR = W * 0.12;
-        const bodyLen = W * 0.35;
-        const armLen = W * 0.32;
-        const flagSize = W * 0.1;
-        const shoulderY = cy + headR + 2;
+        // 肩点位于画布中心，双臂由此向各自方向伸出
+        const sx = W / 2;
+        const sy = H / 2;
+        const armLen = W * 0.33;
+        const flagSize = W * 0.11;
 
-        // --- 身体 ---
-        ctx.strokeStyle = '#3a3a5c';
-        ctx.lineWidth = 2.5;
-        ctx.lineCap = 'round';
-        ctx.beginPath();
-        ctx.moveTo(cx, shoulderY);
-        ctx.lineTo(cx, shoulderY + bodyLen);
-        ctx.stroke();
-
-        // --- 头部 ---
-        ctx.fillStyle = '#ffe0c0';
-        ctx.strokeStyle = '#3a3a5c';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.arc(cx, cy, headR, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.stroke();
-
-        // --- 双臂 + 旗子 ---
-        drawArm(ctx, cx, shoulderY, DIR_ANGLES[rightDir], armLen, flagSize, '#d94535');  // 右手红色
-        drawArm(ctx, cx, shoulderY, DIR_ANGLES[leftDir], armLen, flagSize, '#3567b8');   // 左手蓝色
+        drawArm(ctx, sx, sy, DIR_ANGLES[rightDir], armLen, flagSize, '#d94535');  // 右手红色
+        drawArm(ctx, sx, sy, DIR_ANGLES[leftDir], armLen, flagSize, '#3567b8');   // 左手蓝色
     }
-    // @anchor: semaphore_draw_figure_end
+    // @anchor: semaphore_draw_arms_end
 
     // @anchor: semaphore_draw_arm
     // 绘制单条手臂与三角旗
@@ -142,7 +121,7 @@ const SemaphoreCipher = (() => {
 
         // 手臂
         ctx.strokeStyle = '#3a3a5c';
-        ctx.lineWidth = 2;
+        ctx.lineWidth = 3;
         ctx.lineCap = 'round';
         ctx.beginPath();
         ctx.moveTo(sx, sy);
@@ -171,7 +150,7 @@ const SemaphoreCipher = (() => {
     // @anchor: semaphore_draw_arm_end
 
     // @anchor: semaphore_render
-    // 在容器中渲染旗语可视化：每个字母一张 Canvas 人物图（最多 16 个）
+    // 在容器中渲染旗语可视化：每个字母一张双臂 Canvas 图（最多 16 个）
     function render(container, text) {
         container.innerHTML = '';
         const upperText = text.toUpperCase();
@@ -193,11 +172,11 @@ const SemaphoreCipher = (() => {
 
             if (CipherData.semaphore[ch]) {
                 const canvas = document.createElement('canvas');
-                canvas.width = 75;
-                canvas.height = 95;
+                canvas.width = 72;
+                canvas.height = 72;
                 canvas.className = 'semaphore-canvas';
                 const [r, l] = CipherData.semaphore[ch];
-                drawFigure(canvas, r, l);
+                drawArms(canvas, r, l);
                 wrapper.appendChild(canvas);
 
                 const label = document.createElement('span');
@@ -225,6 +204,13 @@ const SemaphoreCipher = (() => {
         container.appendChild(figuresRow);
     }
     // @anchor: semaphore_render_end
+
+    // @anchor: semaphore_export
+    // 浏览器把模块暴露为全局 SemaphoreCipher；Node 自测时额外走 module 导出，对页面无副作用
+    if (typeof module !== 'undefined' && module.exports) {
+        module.exports = { encode, decode, render, drawArms, toMask, reverseMap };
+    }
+    // @anchor: semaphore_export_end
 
     return { encode, decode, render, toMask, reverseMap };
 })();

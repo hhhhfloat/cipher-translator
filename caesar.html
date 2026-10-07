@@ -42,8 +42,9 @@
         <!-- @anchor: caesar_input_end -->
 
         <!-- @anchor: caesar_results -->
-        <!-- 移位结果区：占位提示与 ROT1~ROT25 结果表格 -->
+        <!-- 移位结果区：词典标记提示条 + 占位提示 + ROT1~ROT25 结果表格 -->
         <section class="results-section" id="resultsSection">
+            <div class="word-hint" id="wordHint" style="display:none;"></div>
             <div class="placeholder" id="placeholder">输入文本以查看所有凯撒移位结果</div>
             <div class="results-table-wrapper" id="resultsTableWrapper" style="display:none;">
                 <table class="results-table" id="resultsTable">
@@ -58,6 +59,7 @@
                 </table>
             </div>
         </section>
+
         <!-- @anchor: caesar_results_end -->
     </main>
 
@@ -66,8 +68,11 @@
     </footer>
 
     <!-- @anchor: caesar_scripts -->
-    <!-- 脚本加载：凯撒移位主体逻辑 -->
+    <!-- 脚本加载：词典词查找工具 → 凯撒移位主体逻辑 -->
+    <script src="modules/word-finder.js"></script>
     <script src="caesar.js"></script>
+
+
     <!-- @anchor: caesar_scripts_end -->
 </body>
 </html>
