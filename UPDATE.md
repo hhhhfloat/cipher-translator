@@ -50,5 +50,16 @@
 
 
 
+<!-- @anchor: log_006 -->
+# [本次] 移除 A1Z26 输入栏 & 智能识别扩展（十六进制 / 七位二进制 / 进制转换）
+- 移除 A1Z26 专用输入模式：`index.html` 删除模式按钮与 `html_a1z26_input` 输入区；`script.js` 删除 A1Z26 DOM 引用、状态、输出文本框刷新、`script_a1z26_input` 区块与初始化调用，模式切换仅保留 文本 / 盲文 / 旗语 三种；`style.css` 删除 `css_a1z26_input` 区块与响应式中的相关选择器（A1Z26 输出卡片不受影响）。
+- `modules/smart-detect.js` 扩展：`parseTokens()` 改为允许十六进制字符（要求含数字，避免纯英文词误判）；新增 `buildHex`（十六进制 → 1–26 字母）、`buildBinary7`（7 位二进制 → ASCII）；`detect()` 判定顺序为 摩斯 → 康托 → 七位二进制 → 五位二进制 → 十六进制（各自独占，二进制/十六进制追加进制转换）→（通用数字）A1Z26/ASCII + 敲击码/三进制追加 + 进制转换。
+- 新增「进制转换」栏目 `buildBaseConversion()`：把各 token 按来源进制取值，转为二进制 / 三进制（左补零到统一宽度以对齐位数）与 7 位二进制（ASCII）三个视图；`renderItem()` 支持栏目内 `views` 二级下拉切换。
+- 页面与样式：`index.html` 文本输入 `maxlength` 与计数改 120，提示文案与智能识别区说明更新；`script.js` 引入 `MAX_LEN` 常量并替换各处硬编码 60；`style.css` 新增 `.smart-item-result.smart-num`（等宽对齐）与 `.smart-view-select`。
+- 自测：新建 `tmp/test-smart-detect.js`（最小 DOM 桩 + 真实 cantor/tapcode 模块），42 项断言全部通过（不误判、A1Z26/进制对齐、5/7 位二进制、十六进制、康托、ASCII 阈值、敲击码/三进制追加、摩斯、7 位 ASCII 视图、渲染下拉）。
+- 文档：`PROJECT.md` 架构 / 决策 / 约定 / 限制同步（输入模式三种、栏目与进制转换、字符上限 120、十六进制与二进制判定约束）。
+<!-- @anchor: log_006_end -->
+
+
 <!-- @anchor: update_record_anchor -->
 <!-- 追加区：后续新记录统一插入本锚点之前 -->

@@ -1,29 +1,37 @@
 // @anchor: smart_detect_intro
-// 半智能识别模块：分析文本输入，判定可能的编码（摩斯 / 五位二进制 / 三进制 / A1Z26 / 敲击码 / ASCII / 康托展开）并渲染可切换栏目
+// 半智能识别模块：分析文本输入，判定可能的编码（摩斯 / 二进制 / 三进制 / 十六进制 / A1Z26 / 敲击码 / ASCII / 康托展开），并渲染可切换栏目
 /**
  * 半智能识别 (Smart Detect) 模块
  * 针对文本输入做启发式判定：
  *   - 摩斯点划（. - 空格，/ 或 | 分单词）  → 摩斯解码（独占）
- *   - 全部为 5 位 0/1                       → 五位二进制解码（独占）
+ *   - 全部为 7 位 0/1                       → 七位二进制解码为 ASCII（独占）
+ *   - 全部为 5 位 0/1                       → 五位二进制解码为字母（独占）
  *   - 全部为 4 位且是 1234 的排列           → 康托展开（独占）
+ *   - 全部为十六进制（含 A-F）              → 十六进制解码为字母（独占）
  *   - 其余「数字 + 空格」输入：
  *       - 大于 2/3 的数字 ≥ 65 → ASCII 码转换，否则 → A1Z26 解码
  *       - 全部为两位数字（数位 1–5） → 追加敲击码解码
  *       - 全部由 0–2 组成且含数字 2  → 追加三进制解码
- * 结果多于一项时渲染为下拉框切换的栏目。
+ *       - 始终追加「进制转换」栏目：二进制 / 三进制（位数对齐）与二进制 7 位（ASCII）
+ * 结果多于一项时渲染为下拉框切换的栏目；进制转换栏目内部可再切换进制视图。
  */
 const SmartDetect = (() => {
     'use strict';
 
 
     // @anchor: smart_detect_parse
-    // 解析输入：仅当为「数字 + 空白」模式时返回数字 token 数组，否则返回 null
-    function parseNumericTokens(text) {
+    // 解析输入：仅当为「数字 / 十六进制字符 + 空白」模式时返回 token 数组，否则返回 null
+    function parseTokens(text) {
         const trimmed = String(text || '').trim();
         if (!trimmed) return null;
-        if (!/^[0-9\s]+$/.test(trimmed)) return null;
+        // 仅允许数字、十六进制字母（A-F）与空白
+        if (!/^[0-9a-fA-F\s]+$/.test(trimmed)) return null;
+        // 至少含一个数字字符，避免把纯英文单词（如 cafe）误判为十六进制
+        if (!/[0-9]/.test(trimmed)) return null;
         const tokens = trimmed.split(/\s+/).filter(function (t) { return t.length > 0; });
-        return tokens.length ? tokens : null;
+        if (!tokens.length) return null;
+        if (!tokens.every(function (t) { return /^[0-9a-fA-F]+$/.test(t); })) return null;
+        return tokens;
     }
     // @anchor: smart_detect_parse_end
 
@@ -53,7 +61,7 @@ const SmartDetect = (() => {
 
 
     // @anchor: smart_detect_rules
-    // 判定辅助：1234 排列、合法敲击码 token、5 位二进制 token、三进制 token
+    // 判定辅助：1234 排列、合法敲击码 token、5 位 / 7 位二进制 token、三进制 token、十六进制模式
     function isPermOf1234(token) {
         return token.length === 4 && token.split('').sort().join('') === '1234';
     }
@@ -65,8 +73,12 @@ const SmartDetect = (() => {
         return row >= 1 && row <= 5 && col >= 1 && col <= 5;
     }
 
-    function isBinaryToken(token) {
+    function isBinary5Token(token) {
         return /^[01]{5}$/.test(token);
+    }
+
+    function isBinary7Token(token) {
+        return /^[01]{7}$/.test(token);
     }
 
     function isTernaryToken(token) {
@@ -75,6 +87,11 @@ const SmartDetect = (() => {
 
     function hasTernaryMarker(tokens) {
         return tokens.some(function (t) { return t.indexOf('2') !== -1; });
+    }
+
+    // 十六进制模式：全部 token 为十六进制串，且至少一个 token 含 A-F 字母
+    function isHexMode(tokens) {
+        return tokens.some(function (t) { return /[a-fA-F]/.test(t); });
     }
 
 
@@ -143,6 +160,7 @@ const SmartDetect = (() => {
             chips: chips
         };
     }
+
     function buildMorse(words) {
         const chips = [];
         const decodedWords = [];
@@ -165,7 +183,7 @@ const SmartDetect = (() => {
         };
     }
 
-    function buildBinary(tokens) {
+    function buildBinary5(tokens) {
         const chips = buildChips(tokens, function (token) {
             const num = parseInt(token, 2);
             return (num >= 1 && num <= 26) ? String.fromCharCode(num + 64) : '?';
@@ -174,6 +192,20 @@ const SmartDetect = (() => {
             key: 'binary5',
             title: '五位二进制解码',
             tag: '5 位二进制 → 十进制 1–26 → 字母',
+            result: chips.map(function (c) { return c.to; }).join(''),
+            chips: chips
+        };
+    }
+
+    function buildBinary7(tokens) {
+        const chips = buildChips(tokens, function (token) {
+            const num = parseInt(token, 2);
+            return (num >= 32 && num <= 126) ? String.fromCharCode(num) : '?';
+        });
+        return {
+            key: 'binary7',
+            title: '七位二进制解码',
+            tag: '7 位二进制 → ASCII 字符',
             result: chips.map(function (c) { return c.to; }).join(''),
             chips: chips
         };
@@ -193,17 +225,96 @@ const SmartDetect = (() => {
         };
     }
 
+    function buildHex(tokens) {
+        const chips = buildChips(tokens, function (token) {
+            const num = parseInt(token, 16);
+            return (num >= 1 && num <= 26) ? String.fromCharCode(num + 64) : '?';
+        });
+        return {
+            key: 'hex',
+            title: '十六进制解码',
+            tag: '十六进制数 → 十进制 1–1A(26) → 字母',
+            result: chips.map(function (c) { return c.to; }).join(''),
+            chips: chips
+        };
+    }
+
+    // 左侧补零到指定宽度，用于二进制 / 三进制位数对齐
+    function padLeft(str, width) {
+        let out = str;
+        while (out.length < width) out = '0' + out;
+        return out;
+    }
+
+    // 进制转换栏目：把各 token 按 srcBase 解析后转为二进制 / 三进制（位数对齐）与 7 位二进制（ASCII）视图
+    function buildBaseConversion(tokens, srcBase) {
+        const values = tokens.map(function (token) {
+            const v = parseInt(token, srcBase);
+            return isNaN(v) ? null : v;
+        });
+
+        function maxWidth(strs, floor, keepTokenLen) {
+            let width = floor || 0;
+            strs.forEach(function (s, i) {
+                width = Math.max(width, s.length);
+                if (keepTokenLen) width = Math.max(width, tokens[i].length);
+            });
+            return width;
+        }
+
+        const binRaw = values.map(function (v) { return v === null ? '?' : v.toString(2); });
+        const triRaw = values.map(function (v) { return v === null ? '?' : v.toString(3); });
+        const binWidth = maxWidth(binRaw, 0, srcBase === 2);
+        const triWidth = maxWidth(triRaw, 0, srcBase === 3);
+        const bin7Width = maxWidth(binRaw, 7, false);
+
+        const binView = {
+            label: '二进制',
+            tag: '各值转二进制（位数对齐）',
+            result: binRaw.map(function (s) { return padLeft(s, binWidth); }).join(' '),
+            chips: tokens.map(function (token, i) {
+                return { from: token, to: padLeft(binRaw[i], binWidth) };
+            })
+        };
+
+        const triView = {
+            label: '三进制',
+            tag: '各值转三进制（位数对齐）',
+            result: triRaw.map(function (s) { return padLeft(s, triWidth); }).join(' '),
+            chips: tokens.map(function (token, i) {
+                return { from: token, to: padLeft(triRaw[i], triWidth) };
+            })
+        };
+
+        const bin7View = {
+            label: '二进制 · 7 位（ASCII）',
+            tag: '各值转 7 位二进制 → ASCII 字符',
+            result: values.map(function (v) {
+                return (v !== null && v >= 32 && v <= 126) ? String.fromCharCode(v) : '?';
+            }).join(''),
+            chips: tokens.map(function (token, i) {
+                return { from: token, to: padLeft(binRaw[i], bin7Width) };
+            })
+        };
+
+        return {
+            key: 'baseconv',
+            title: '进制转换',
+            views: [binView, triView, bin7View]
+        };
+    }
+
 
     // @anchor: smart_detect_builders_end
 
     // @anchor: smart_detect_detect
-    // 核心判定：摩斯 / 康托展开 / 五位二进制独占；ASCII 与 A1Z26 互斥；敲击码与三进制为追加项
+    // 核心判定：摩斯 / 二进制 / 康托展开 / 十六进制独占；ASCII 与 A1Z26 互斥；敲击码与三进制为追加项；始终追加进制转换
     function detect(text) {
         // 摩斯：点划输入（独占，与数字模式互斥）
         const morseWords = parseMorseWords(text);
         if (morseWords) return [buildMorse(morseWords)];
 
-        const tokens = parseNumericTokens(text);
+        const tokens = parseTokens(text);
         if (!tokens) return [];
 
         // 康托展开：全部为 4 位且是 1234 的排列（独占）
@@ -211,9 +322,19 @@ const SmartDetect = (() => {
             return [buildCantor(tokens)];
         }
 
-        // 五位二进制：全部为 5 位 0/1（独占）
-        if (tokens.every(isBinaryToken)) {
-            return [buildBinary(tokens)];
+        // 七位二进制：全部为 7 位 0/1（独占，追加进制转换）
+        if (tokens.every(isBinary7Token)) {
+            return [buildBinary7(tokens), buildBaseConversion(tokens, 2)];
+        }
+
+        // 五位二进制：全部为 5 位 0/1（独占，追加进制转换）
+        if (tokens.every(isBinary5Token)) {
+            return [buildBinary5(tokens), buildBaseConversion(tokens, 2)];
+        }
+
+        // 十六进制：含 A-F（独占，追加进制转换）
+        if (isHexMode(tokens)) {
+            return [buildHex(tokens), buildBaseConversion(tokens, 16)];
         }
 
         const results = [];
@@ -238,6 +359,9 @@ const SmartDetect = (() => {
             results.push(buildTernary(tokens));
         }
 
+        // 进制转换（始终追加）
+        results.push(buildBaseConversion(tokens, 10));
+
         return results;
     }
 
@@ -254,8 +378,8 @@ const SmartDetect = (() => {
             const placeholder = document.createElement('div');
             placeholder.className = 'smart-placeholder';
             placeholder.textContent = String(text || '').trim()
-                ? '当前输入不符合可识别的模式（支持数字 + 空格，或摩斯点划 . -）'
-                : '输入数字串或摩斯点划（如 8 5 12 12 15 / .... . .-.. .-.. ---）将自动识别可能的编码';
+                ? '当前输入不符合可识别的模式（支持数字 / 十六进制 + 空格，或摩斯点划 . -）'
+                : '输入数字串、二进制、十六进制或摩斯点划（如 8 5 12 12 15 / 01000 00101 / .... . .-.. .-.. ---）将自动识别可能的编码';
             container.appendChild(placeholder);
             return;
         }
@@ -290,9 +414,11 @@ const SmartDetect = (() => {
     }
 
     // @anchor: smart_detect_render_item
-    // 渲染单个识别栏目：标题、规则说明、结果串与逐 token 映射 chips
+    // 渲染单个识别栏目：标题 + 视图（多于一个视图时栏内再用下拉切换进制）+ 规则说明 + 结果串 + 映射 chips
     function renderItem(container, item) {
         container.innerHTML = '';
+
+        const views = (item.views && item.views.length) ? item.views : [item];
 
         const head = document.createElement('div');
         head.className = 'smart-item-head';
@@ -303,42 +429,76 @@ const SmartDetect = (() => {
 
         const tag = document.createElement('span');
         tag.className = 'smart-item-tag';
-        tag.textContent = item.tag;
 
         head.appendChild(title);
         head.appendChild(tag);
 
         const result = document.createElement('div');
-        result.className = 'smart-item-result';
-        result.textContent = item.result || '-';
+        result.className = 'smart-item-result' + (item.key === 'baseconv' ? ' smart-num' : '');
 
         const chips = document.createElement('div');
         chips.className = 'smart-chips';
-        item.chips.forEach(function (chip) {
-            const chipEl = document.createElement('span');
-            chipEl.className = 'smart-chip';
 
-            const fromEl = document.createElement('span');
-            fromEl.className = 'smart-chip-from';
-            fromEl.textContent = chip.from;
+        // 栏内视图切换（仅当栏目定义多个视图，如进制转换）
+        let viewSelect = null;
+        if (views.length > 1) {
+            const label = document.createElement('label');
+            label.className = 'smart-select-label smart-view-select';
 
-            const arrowEl = document.createElement('span');
-            arrowEl.className = 'smart-chip-arrow';
-            arrowEl.textContent = '→';
+            const labelText = document.createElement('span');
+            labelText.textContent = '进制';
+            label.appendChild(labelText);
 
-            const toEl = document.createElement('span');
-            toEl.className = 'smart-chip-to';
-            toEl.textContent = chip.to;
+            viewSelect = document.createElement('select');
+            viewSelect.className = 'smart-select';
+            views.forEach(function (view, index) {
+                const option = document.createElement('option');
+                option.value = String(index);
+                option.textContent = view.label || item.title;
+                viewSelect.appendChild(option);
+            });
+            label.appendChild(viewSelect);
 
-            chipEl.appendChild(fromEl);
-            chipEl.appendChild(arrowEl);
-            chipEl.appendChild(toEl);
-            chips.appendChild(chipEl);
-        });
+            viewSelect.addEventListener('change', function () {
+                paint(views[parseInt(viewSelect.value, 10)]);
+            });
 
-        container.appendChild(head);
+            container.appendChild(head);
+            container.appendChild(label);
+        } else {
+            container.appendChild(head);
+        }
+
+        function paint(view) {
+            tag.textContent = view.tag || '';
+            result.textContent = view.result || '-';
+            chips.innerHTML = '';
+            (view.chips || []).forEach(function (chip) {
+                const chipEl = document.createElement('span');
+                chipEl.className = 'smart-chip';
+
+                const fromEl = document.createElement('span');
+                fromEl.className = 'smart-chip-from';
+                fromEl.textContent = chip.from;
+
+                const arrowEl = document.createElement('span');
+                arrowEl.className = 'smart-chip-arrow';
+                arrowEl.textContent = '→';
+
+                const toEl = document.createElement('span');
+                toEl.className = 'smart-chip-to';
+                toEl.textContent = chip.to;
+
+                chipEl.appendChild(fromEl);
+                chipEl.appendChild(arrowEl);
+                chipEl.appendChild(toEl);
+                chips.appendChild(chipEl);
+            });
+        }
+
         container.appendChild(result);
         container.appendChild(chips);
+        paint(views[0]);
     }
     // @anchor: smart_detect_render_item_end
     // @anchor: smart_detect_render_end

@@ -1,5 +1,5 @@
 <!-- @anchor: index_intro -->
-<!-- 古典密码互译器结构骨架：头部导航 + 四种输入模式区（文本 / 盲文 / A1Z26 / 旗语）+ 五张密码输出卡片，脚本按序加载 -->
+<!-- 古典密码互译器结构骨架：头部导航 + 三种输入模式区（文本 / 盲文 / 旗语）+ 五张密码输出卡片，脚本按序加载 -->
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -22,7 +22,7 @@
 
 
         <!-- @anchor: html_mode_selector -->
-        <!-- 输入模式选择器：文本 / 盲文 / A1Z26 / 旗语 四种输入切换 -->
+<!-- 输入模式选择器：文本 / 盲文 / 旗语 三种输入切换 -->
         <section class="mode-selector-section">
             <div class="mode-selector" id="modeSelector">
                 <button class="mode-btn active" data-mode="text">
@@ -33,21 +33,17 @@
                     <span class="mode-btn-icon">⠿</span>
                     <span class="mode-btn-label">盲文输入</span>
                 </button>
-                <button class="mode-btn" data-mode="a1z26">
-                    <span class="mode-btn-icon">#</span>
-                    <span class="mode-btn-label">A1Z26输入</span>
-                </button>
                 <button class="mode-btn" data-mode="semaphore">
                     <span class="mode-btn-icon">🚩</span>
                     <span class="mode-btn-label">旗语输入</span>
                 </button>
             </div>
         </section>
+        
         <!-- @anchor: html_mode_selector_end -->
 
         <!-- @anchor: html_text_input -->
-
-        <!-- 文本输入区域：直接键入英文或数字串/摩斯点划，实时转换五种密码并启用智能识别 -->
+<!-- 文本输入区域：直接键入英文或数字串/十六进制/二进制/摩斯点划，实时转换五种密码并启用智能识别 -->
         <section class="input-section" id="textInputSection">
             <div class="input-wrapper">
                 <label for="textInput" class="input-label">输入英文文本</label>
@@ -56,17 +52,18 @@
                         type="text"
                         id="textInput"
                         class="text-input"
-                        placeholder="例如：HELLO WORLD / 8 5 12 12 15 / .... . .-.. .-.. ---"
-                        maxlength="60"
+                        placeholder="例如：HELLO / 8 5 12 12 15 / 01000 00101 / .... . .-.. .-.. ---"
+                        maxlength="120"
                     >
                     <button id="clearBtn" class="clear-btn" title="清空">✕</button>
                 </div>
-                <span id="charCount" class="char-count">0 / 60</span>
+                <span id="charCount" class="char-count">0 / 120</span>
             </div>
-            <p class="input-hint">支持 A-Z 字母实时转换五种古典密码；输入数字串、五位二进制、三进制或摩斯点划会智能识别 A1Z26 / 敲击码 / ASCII / 康托展开等编码</p>
+            <p class="input-hint">支持 A-Z 字母实时转换五种古典密码；输入数字串、二进制、十六进制、三进制或摩斯点划会智能识别 A1Z26 / 敲击码 / ASCII / 康托展开，并给出进制转换栏目</p>
 
+            
             <!-- @anchor: html_smart_detect -->
-            <!-- 半智能识别区：按输入形态（数字 / 摩斯点划 / 五位二进制 / 三进制等）自动识别编码，结果多于一项时以下拉框切换栏目 -->
+<!-- 半智能识别区：按输入形态（数字 / 十六进制 / 二进制 / 三进制 / 摩斯点划等）自动识别编码，含进制转换栏目；结果多于一项时以下拉框切换栏目 -->
             <div class="smart-detect" id="smartDetect">
                 <div class="smart-detect-header">
                     <span class="smart-detect-icon">🔎</span>
@@ -75,6 +72,7 @@
                 <div class="smart-detect-body" id="smartDetectBody"></div>
             </div>
 
+            
             <!-- @anchor: html_smart_detect_end -->
         </section>
         <!-- @anchor: html_text_input_end -->
@@ -124,51 +122,7 @@
         </section>
         <!-- @anchor: html_braille_input_end -->
 
-        <!-- @anchor: html_a1z26_input -->
-        <!-- A1Z26 数字解码输入区域：输入空格/连字符分隔的数字，解码为字母 -->
-        <section class="input-section a1z26-input-section" id="a1z26InputSection" style="display:none;">
-            <div class="a1z26-input-header">
-                <span class="a1z26-input-header-icon">#</span>
-                <h2>A1Z26 数字解码输入</h2>
-            </div>
-            <p class="a1z26-input-hint">输入数字（空格或连字符分隔），如 "3 1 20" 或 "3-1-20"，自动翻译为字母</p>
-            <div class="a1z26-input-area">
-                <!-- 数字输入框 -->
-                <div class="a1z26-input-field-wrapper">
-                    <input
-                        type="text"
-                        id="a1z26NumberInput"
-                        class="a1z26-number-input"
-                        placeholder="例如：3 1 20"
-                        maxlength="120"
-                    >
-                </div>
-                <!-- 翻译结果 -->
-                <div class="a1z26-input-result" id="a1z26InputResult">
-                    <span class="a1z26-input-numbers" id="a1z26InputNumbers">-</span>
-                    <span class="a1z26-input-arrow">→</span>
-                    <span class="a1z26-input-letters" id="a1z26InputLetters">-</span>
-                </div>
-                <!-- 翻译输出文本框 -->
-                <div class="special-input-textbox-wrapper">
-                    <label class="special-input-textbox-label">翻译结果</label>
-                    <input
-                        type="text"
-                        id="a1z26OutputTextbox"
-                        class="special-input-textbox"
-                        readonly
-                        placeholder="输入数字后在此显示翻译文本"
-                    >
-                </div>
-                <!-- 操作按钮 -->
-                <div class="a1z26-input-actions">
-                    <button id="a1z26AddBtn" class="a1z26-add-btn" disabled>添加到文本</button>
-                    <button id="a1z26ClearBtn" class="a1z26-clear-btn">清除</button>
-                </div>
-            </div>
-        </section>
-        <!-- @anchor: html_a1z26_input_end -->
-
+        
         <!-- @anchor: html_semaphore_input -->
         <!-- 旗语九宫格输入区域：依次点击两个方向格（忽略顺序）解码为字母 -->
         <section class="input-section semaphore-input-section" id="semaphoreInputSection" style="display:none;">

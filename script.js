@@ -1,12 +1,13 @@
 // @anchor: script_intro
-// 主脚本：协调输入事件，将文本分发给五个密码模块渲染；并管理四种输入模式（文本 / 盲文 / A1Z26 / 旗语）的切换与解码
+// 主脚本：协调输入事件，将文本分发给五个密码模块渲染；并管理三种输入模式（文本 / 盲文 / 旗语）的切换与解码
 /**
  * 古典密码互译器 — 主脚本
  * 协调输入事件，将文本分发给五个密码模块进行渲染。
- * 同时管理输入模式切换：文本输入 / 盲文点阵输入 / A1Z26数字输入 / 旗语九宫格输入。
+ * 同时管理输入模式切换：文本输入 / 盲文点阵输入 / 旗语九宫格输入。
  */
 (function () {
     'use strict';
+
 
     // @anchor: script_dom_refs
     // 缓存页面 DOM 引用（输入控件、模式区、各密码输出容器、模块引用）
@@ -15,10 +16,12 @@
     const clearBtn = document.getElementById('clearBtn');
     const charCount = document.getElementById('charCount');
 
-    // 四个输入区域
+    // 文本输入最大长度（与 index.html 的 maxlength 保持一致）
+    const MAX_LEN = 120;
+
+    // 三个输入区域
     const textInputSection = document.getElementById('textInputSection');
     const brailleInputSection = document.getElementById('brailleInputSection');
-    const a1z26InputSection = document.getElementById('a1z26InputSection');
     const semaphoreInputSection = document.getElementById('semaphoreInputSection');
 
     // 模式选择器
@@ -32,14 +35,6 @@
     const brailleClearDotsBtn = document.getElementById('brailleClearDotsBtn');
     const brailleClearTextBtn = document.getElementById('brailleClearTextBtn');
     const brailleOutputTextbox = document.getElementById('brailleOutputTextbox');
-
-    // A1Z26 数字输入 DOM
-    const a1z26NumberInput = document.getElementById('a1z26NumberInput');
-    const a1z26InputNumbers = document.getElementById('a1z26InputNumbers');
-    const a1z26InputLetters = document.getElementById('a1z26InputLetters');
-    const a1z26AddBtn = document.getElementById('a1z26AddBtn');
-    const a1z26ClearBtn = document.getElementById('a1z26ClearBtn');
-    const a1z26OutputTextbox = document.getElementById('a1z26OutputTextbox');
 
     // 旗语九宫格输入 DOM
     const semaphoreGrid = document.getElementById('semaphoreGrid');
@@ -69,12 +64,13 @@
     // 半智能识别结果容器
     const smartDetectBody = document.getElementById('smartDetectBody');
 
+
     // @anchor: script_dom_refs_end
 
     // @anchor: script_state
-    // 运行时状态：当前输入模式、盲文点阵与累积文本、旗语双臂选择、A1Z26 累积文本
+    // 运行时状态：当前输入模式、盲文点阵与累积文本、旗语双臂选择
     // --- 当前输入模式 ---
-    var currentMode = 'text'; // 'text' | 'braille' | 'a1z26' | 'semaphore'
+    var currentMode = 'text'; // 'text' | 'braille' | 'semaphore'
 
     // --- 盲文点阵输入状态 ---
     var brailleDotsState = [false, false, false, false, false, false];
@@ -85,15 +81,13 @@
     var semaphoreLeftArm = null;  // 左手方向索引 (0-7)，null 表示未选
     var semaphoreAccumulatedText = '';
 
-    // --- A1Z26 累积翻译文本 ---
-    var a1z26AccumulatedText = '';
     // @anchor: script_state_end
 
     // @anchor: script_mode_switch
     // 切换输入模式：高亮按钮、切换输入区显示、重置对应输入状态
     /**
      * 切换到指定输入模式
-     * @param {string} mode - 'text' | 'braille' | 'a1z26' | 'semaphore'
+     * @param {string} mode - 'text' | 'braille' | 'semaphore'
      */
     function switchMode(mode) {
         if (currentMode === mode) return;
@@ -112,7 +106,6 @@
         // 切换输入区域显示
         textInputSection.style.display = (mode === 'text') ? '' : 'none';
         brailleInputSection.style.display = (mode === 'braille') ? '' : 'none';
-        a1z26InputSection.style.display = (mode === 'a1z26') ? '' : 'none';
         semaphoreInputSection.style.display = (mode === 'semaphore') ? '' : 'none';
 
         // 切换模式时重置对应输入状态
@@ -120,8 +113,6 @@
             clearBrailleDots();
         } else if (mode === 'semaphore') {
             clearSemaphoreSelection();
-        } else if (mode === 'a1z26') {
-            clearA1Z26Input();
         }
     }
 
@@ -136,6 +127,7 @@
             }
         });
     }
+
     // @anchor: script_mode_switch_end
 
     // @anchor: script_output_textbox
@@ -151,17 +143,6 @@
         updateBrailleOutputTextbox();
     }
 
-    function updateA1Z26OutputTextbox() {
-        if (a1z26OutputTextbox) {
-            a1z26OutputTextbox.value = a1z26AccumulatedText;
-        }
-    }
-
-    function clearA1Z26AccumulatedText() {
-        a1z26AccumulatedText = '';
-        updateA1Z26OutputTextbox();
-    }
-
     function updateSemaphoreOutputTextbox() {
         if (semaphoreOutputTextbox) {
             semaphoreOutputTextbox.value = semaphoreAccumulatedText;
@@ -172,116 +153,9 @@
         semaphoreAccumulatedText = '';
         updateSemaphoreOutputTextbox();
     }
+
     // @anchor: script_output_textbox_end
 
-    // @anchor: script_a1z26_input
-    // A1Z26 数字输入：解码预览、添加到文本、清除与事件绑定
-    /**
-     * 根据 A1Z26 输入框内容解码为字母串
-     * @returns {{ numbers: string, letters: string, isValid: boolean }}
-     */
-    function computeA1Z26Result() {
-        var raw = a1z26NumberInput.value.trim();
-        if (!raw) {
-            return { numbers: '-', letters: '-', isValid: false };
-        }
-
-        // 分割：空格或连字符
-        var parts = raw.split(/[\-\s]+/);
-        var decodedLetters = [];
-        var allValid = true;
-
-        for (var i = 0; i < parts.length; i++) {
-            var part = parts[i];
-            if (part === '') continue;
-            var num = parseInt(part, 10);
-            if (!isNaN(num) && num >= 1 && num <= 26) {
-                decodedLetters.push(String.fromCharCode(num + 64));
-            } else {
-                // 无效数字，保留原始内容
-                decodedLetters.push('?');
-                allValid = false;
-            }
-        }
-
-        var letters = decodedLetters.length > 0 ? decodedLetters.join('') : '-';
-
-        return {
-            numbers: raw,
-            letters: letters,
-            isValid: allValid && decodedLetters.length > 0
-        };
-    }
-
-    /**
-     * 更新 A1Z26 输入 UI
-     */
-    function updateA1Z26InputUI() {
-        var result = computeA1Z26Result();
-        a1z26InputNumbers.textContent = result.numbers;
-        a1z26InputLetters.textContent = result.letters;
-
-        if (result.isValid) {
-            a1z26AddBtn.disabled = false;
-            a1z26InputLetters.classList.add('result-ready');
-        } else {
-            a1z26AddBtn.disabled = true;
-            a1z26InputLetters.classList.remove('result-ready');
-        }
-
-        // 实时预览翻译结果到输出文本框
-        if (result.isValid && result.letters !== '-') {
-            a1z26OutputTextbox.value = result.letters;
-        } else if (!a1z26NumberInput.value.trim()) {
-            a1z26OutputTextbox.value = a1z26AccumulatedText;
-        }
-    }
-
-    /**
-     * 清除 A1Z26 输入
-     */
-    function clearA1Z26Input() {
-        a1z26NumberInput.value = '';
-        a1z26AccumulatedText = '';
-        updateA1Z26InputUI();
-        updateA1Z26OutputTextbox();
-    }
-
-    /**
-     * 将 A1Z26 解码结果添加到文本输入框
-     */
-    function addA1Z26ToText() {
-        var result = computeA1Z26Result();
-        if (result.isValid) {
-            var letters = result.letters;
-            var current = textInput.value;
-            if (current.length + letters.length > 60) {
-                letters = letters.slice(0, 60 - current.length);
-            }
-            if (letters.length > 0) {
-                textInput.value = current + letters;
-                textInput.dispatchEvent(new Event('input', { bubbles: true }));
-                // 累积到输出文本框
-                a1z26AccumulatedText += letters;
-                updateA1Z26OutputTextbox();
-                clearA1Z26Input();
-            }
-        }
-    }
-
-    // --- A1Z26 输入事件绑定 ---
-    if (a1z26NumberInput) {
-        a1z26NumberInput.addEventListener('input', updateA1Z26InputUI);
-    }
-
-    if (a1z26AddBtn) {
-        a1z26AddBtn.addEventListener('click', addA1Z26ToText);
-    }
-
-    if (a1z26ClearBtn) {
-        a1z26ClearBtn.addEventListener('click', clearA1Z26Input);
-    }
-    // @anchor: script_a1z26_input_end
 
     // @anchor: script_braille_input
     // 盲文点阵输入：点阵状态换算 Unicode 与字母、点选切换、添加到文本与事件绑定
@@ -553,10 +427,11 @@
      */
     function appendToTextInput(char) {
         var current = textInput.value;
-        if (current.length >= 60) return;
+        if (current.length >= MAX_LEN) return;
         textInput.value = current + char;
         textInput.dispatchEvent(new Event('input', { bubbles: true }));
     }
+
     // @anchor: script_append_text_end
 
     // @anchor: script_render_ciphers
@@ -598,11 +473,11 @@
     function onInputChange() {
         var value = textInput.value;
         var len = value.length;
-        charCount.textContent = len + ' / 60';
+        charCount.textContent = len + ' / ' + MAX_LEN;
 
-        if (len > 60) {
-            textInput.value = value.slice(0, 60);
-            charCount.textContent = '60 / 60';
+        if (len > MAX_LEN) {
+            textInput.value = value.slice(0, MAX_LEN);
+            charCount.textContent = MAX_LEN + ' / ' + MAX_LEN;
         }
 
         updateAllCiphers(textInput.value);
@@ -611,7 +486,7 @@
 
     function onClear() {
         textInput.value = '';
-        charCount.textContent = '0 / 60';
+        charCount.textContent = '0 / ' + MAX_LEN;
         updateAllCiphers('');
         updateSmartDetection('');
         textInput.focus();
@@ -620,6 +495,7 @@
     // --- 绑定文本输入事件 ---
     textInput.addEventListener('input', onInputChange);
     clearBtn.addEventListener('click', onClear);
+
     // @anchor: script_input_events_end
 
     // @anchor: script_init
@@ -630,18 +506,18 @@
     updateAllCiphers('');
     updateSmartDetection('');
     updateBrailleInputUI();
-    updateA1Z26InputUI();
     updateSemaphoreUI();
 
     // 加载后自动展示示例
     setTimeout(function () {
         if (textInput.value === '') {
             textInput.value = 'HELLO';
-            charCount.textContent = '5 / 60';
+            charCount.textContent = '5 / ' + MAX_LEN;
             updateAllCiphers('HELLO');
             updateSmartDetection('HELLO');
         }
     }, 300);
+
     // @anchor: script_init_end
 
 })();

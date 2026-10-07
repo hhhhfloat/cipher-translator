@@ -439,6 +439,20 @@ body {
     font-weight: 700;
     font-family: var(--font-serif);
 }
+/* --- 进制转换等数字型结果：等宽字体，便于位数对齐阅读 --- */
+.smart-item-result.smart-num {
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    font-size: 1.05rem;
+    letter-spacing: 0.05em;
+}
+
+.smart-view-select {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
 /* @anchor: css_smart_detect_end */
 
 
@@ -603,166 +617,6 @@ body {
 }
 /* @anchor: css_braille_input_end */
 
-/* @anchor: css_a1z26_input */
-/* A1Z26 数字解码输入区：数字输入框、翻译结果与操作按钮 */
-/* ============================================
-   A1Z26 数字输入区域
-   ============================================ */
-.a1z26-input-header {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    margin-bottom: 6px;
-}
-
-.a1z26-input-header-icon {
-    font-size: 28px;
-    font-weight: 700;
-    width: 44px;
-    height: 44px;
-    border-radius: var(--radius-sm);
-    background: #e8f0f6;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--blue);
-}
-
-.a1z26-input-header h2 {
-    font-size: 1.15rem;
-    font-weight: 700;
-    color: #3a3028;
-}
-
-.a1z26-input-hint {
-    font-size: 0.85rem;
-    color: var(--text-muted);
-    margin-bottom: 18px;
-}
-
-.a1z26-input-area {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 24px;
-    flex-wrap: wrap;
-}
-
-/* --- 数字输入框 --- */
-.a1z26-input-field-wrapper {
-    flex-shrink: 0;
-}
-
-.a1z26-number-input {
-    width: 260px;
-    padding: 12px 18px;
-    font-size: 1.2rem;
-    font-family: var(--font-sans);
-    letter-spacing: 0.05em;
-    border: 2px solid var(--border);
-    border-radius: var(--radius);
-    background: #fdfcf9;
-    color: var(--text);
-    outline: none;
-    transition: border-color 0.25s, box-shadow 0.25s;
-}
-
-.a1z26-number-input::placeholder {
-    color: #c4bdb2;
-    font-size: 0.95rem;
-}
-
-.a1z26-number-input:focus {
-    border-color: var(--blue);
-    box-shadow: 0 0 0 4px rgba(58,95,139,0.08);
-}
-
-/* --- A1Z26 翻译结果 --- */
-.a1z26-input-result {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    padding: 10px 20px;
-    background: #eef4fb;
-    border-radius: 10px;
-    border: 1px solid #d8e4f2;
-}
-
-.a1z26-input-numbers {
-    font-size: 1.15rem;
-    font-weight: 600;
-    color: var(--blue);
-    letter-spacing: 0.04em;
-    min-width: 60px;
-    text-align: center;
-    word-break: break-all;
-    max-width: 200px;
-}
-
-.a1z26-input-arrow {
-    font-size: 1.2rem;
-    color: #a0b8d0;
-}
-
-.a1z26-input-letters {
-    font-size: 1.6rem;
-    font-weight: 700;
-    color: #3a5f8b;
-    min-width: 60px;
-    text-align: center;
-    font-family: var(--font-serif);
-    letter-spacing: 0.05em;
-}
-
-.a1z26-input-letters.result-ready {
-    color: #2d6a3a;
-}
-
-/* --- A1Z26 操作按钮 --- */
-.a1z26-input-actions {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.a1z26-add-btn,
-.a1z26-clear-btn {
-    padding: 10px 18px;
-    border: none;
-    border-radius: var(--radius-sm);
-    font-size: 0.9rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-    white-space: nowrap;
-}
-
-.a1z26-add-btn {
-    background: #3a5f8b;
-    color: #fff;
-}
-
-.a1z26-add-btn:hover:not(:disabled) {
-    background: #4a72a0;
-}
-
-.a1z26-add-btn:disabled {
-    background: #d0d8e2;
-    color: #a0a8b5;
-    cursor: not-allowed;
-}
-
-.a1z26-clear-btn {
-    background: #f0ebe0;
-    color: #7a6e5e;
-}
-
-.a1z26-clear-btn:hover {
-    background: #e4dcd0;
-    color: #5a4e3e;
-}
-/* @anchor: css_a1z26_input_end */
 
 /* @anchor: css_semaphore_input */
 /* 旗语九宫格输入区：3×3 方向格、中心显示与操作按钮 */
@@ -1330,7 +1184,6 @@ body {
     }
 
     .braille-input-area,
-    .a1z26-input-area,
     .semaphore-input-area {
         gap: 18px;
     }
@@ -1338,11 +1191,6 @@ body {
     .braille-input-dot {
         width: 34px;
         height: 34px;
-    }
-
-    .a1z26-number-input {
-        width: 220px;
-        font-size: 1.05rem;
     }
 
     .mode-btn {
@@ -1389,22 +1237,15 @@ body {
     }
 
     .braille-input-area,
-    .a1z26-input-area,
     .semaphore-input-area {
         flex-direction: column;
         gap: 14px;
     }
 
     .braille-input-actions,
-    .a1z26-input-actions,
     .semaphore-input-actions {
         flex-direction: row;
         gap: 10px;
-    }
-
-    .a1z26-number-input {
-        width: 100%;
-        max-width: 280px;
     }
 
     .mode-selector {
@@ -1446,4 +1287,5 @@ body {
         font-size: 0.95rem;
     }
 }
+
 /* @anchor: css_responsive_end */
