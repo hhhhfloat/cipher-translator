@@ -171,31 +171,31 @@
     "preview" : "// @anchor: caesar_input_handler"
   }, {
     "id" : "caesar_input_handler_end",
-    "line" : 342,
+    "line" : 336,
     "preview" : "// @anchor: caesar_input_handler_end"
   }, {
     "id" : "caesar_event_bindings",
-    "line" : 344,
+    "line" : 338,
     "preview" : "// @anchor: caesar_event_bindings"
   }, {
     "id" : "caesar_event_bindings_end",
-    "line" : 348,
+    "line" : 342,
     "preview" : "// @anchor: caesar_event_bindings_end"
   }, {
     "id" : "caesar_word_toggle",
-    "line" : 350,
+    "line" : 344,
     "preview" : "// @anchor: caesar_word_toggle"
   }, {
     "id" : "caesar_word_toggle_end",
-    "line" : 360,
+    "line" : 354,
     "preview" : "// @anchor: caesar_word_toggle_end"
   }, {
     "id" : "caesar_init",
-    "line" : 362,
+    "line" : 356,
     "preview" : "// @anchor: caesar_init"
   }, {
     "id" : "caesar_init_end",
-    "line" : 375,
+    "line" : 370,
     "preview" : "// @anchor: caesar_init_end"
   } ],
   "cipher-data.js" : [ {
@@ -325,7 +325,7 @@
     "preview" : "<!-- @anchor: html_scripts -->"
   }, {
     "id" : "html_scripts_end",
-    "line" : 391,
+    "line" : 397,
     "preview" : "<!-- @anchor: html_scripts_end -->"
   } ],
   "modules/a1z26.js" : [ {
@@ -436,7 +436,7 @@
     "preview" : "// @anchor: braille_render"
   }, {
     "id" : "braille_render_end",
-    "line" : 148,
+    "line" : 122,
     "preview" : "// @anchor: braille_render_end"
   } ],
   "modules/cantor.js" : [ {
@@ -475,6 +475,43 @@
     "id" : "cantor_decode_end",
     "line" : 60,
     "preview" : "// @anchor: cantor_decode_end"
+  } ],
+  "modules/digit-words.js" : [ {
+    "id" : "digit_words_intro",
+    "line" : 1,
+    "preview" : "// @anchor: digit_words_intro"
+  }, {
+    "id" : "digit_words_ctx",
+    "line" : 17,
+    "preview" : "// @anchor: digit_words_ctx"
+  }, {
+    "id" : "digit_words_ctx_end",
+    "line" : 74,
+    "preview" : "// @anchor: digit_words_ctx_end"
+  }, {
+    "id" : "digit_words_decompose",
+    "line" : 76,
+    "preview" : "// @anchor: digit_words_decompose"
+  }, {
+    "id" : "digit_words_decompose_end",
+    "line" : 159,
+    "preview" : "// @anchor: digit_words_decompose_end"
+  }, {
+    "id" : "digit_words_entries",
+    "line" : 161,
+    "preview" : "// @anchor: digit_words_entries"
+  }, {
+    "id" : "digit_words_entries_end",
+    "line" : 278,
+    "preview" : "// @anchor: digit_words_entries_end"
+  }, {
+    "id" : "digit_words_export",
+    "line" : 280,
+    "preview" : "// @anchor: digit_words_export"
+  }, {
+    "id" : "digit_words_export_end",
+    "line" : 285,
+    "preview" : "// @anchor: digit_words_export_end"
   } ],
   "modules/morse.js" : [ {
     "id" : "morse_intro",
@@ -757,82 +794,103 @@
     "line" : 205,
     "preview" : "// @anchor: semaphore_export_end"
   } ],
+  "modules/smart-detect-render.js" : [ {
+    "id" : "smart_detect_render_intro",
+    "line" : 1,
+    "preview" : "// @anchor: smart_detect_render_intro"
+  }, {
+    "id" : "smart_detect_render",
+    "line" : 29,
+    "preview" : "// @anchor: smart_detect_render"
+  }, {
+    "id" : "smart_detect_render_end",
+    "line" : 108,
+    "preview" : "// @anchor: smart_detect_render_end"
+  }, {
+    "id" : "smart_detect_render_item",
+    "line" : 110,
+    "preview" : "// @anchor: smart_detect_render_item"
+  }, {
+    "id" : "smart_detect_render_item_end",
+    "line" : 226,
+    "preview" : "// @anchor: smart_detect_render_item_end"
+  }, {
+    "id" : "smart_detect_render_export",
+    "line" : 228,
+    "preview" : "// @anchor: smart_detect_render_export"
+  }, {
+    "id" : "smart_detect_render_export_end",
+    "line" : 233,
+    "preview" : "// @anchor: smart_detect_render_export_end"
+  } ],
   "modules/smart-detect.js" : [ {
     "id" : "smart_detect_intro",
     "line" : 1,
     "preview" : "// @anchor: smart_detect_intro"
   }, {
     "id" : "smart_detect_parse",
-    "line" : 31,
+    "line" : 24,
     "preview" : "// @anchor: smart_detect_parse"
   }, {
     "id" : "smart_detect_parse_end",
-    "line" : 45,
+    "line" : 38,
     "preview" : "// @anchor: smart_detect_parse_end"
   }, {
     "id" : "smart_detect_morse",
-    "line" : 47,
+    "line" : 40,
     "preview" : "// @anchor: smart_detect_morse"
   }, {
     "id" : "smart_detect_morse_end",
-    "line" : 70,
+    "line" : 62,
     "preview" : "// @anchor: smart_detect_morse_end"
   }, {
     "id" : "smart_detect_rules",
-    "line" : 73,
+    "line" : 64,
     "preview" : "// @anchor: smart_detect_rules"
   }, {
     "id" : "smart_detect_rules_end",
-    "line" : 108,
+    "line" : 97,
     "preview" : "// @anchor: smart_detect_rules_end"
   }, {
     "id" : "smart_detect_builders",
-    "line" : 110,
+    "line" : 99,
     "preview" : "// @anchor: smart_detect_builders"
   }, {
     "id" : "smart_detect_baseconv",
-    "line" : 252,
+    "line" : 241,
     "preview" : "// @anchor: smart_detect_baseconv"
   }, {
     "id" : "smart_detect_baseconv_end",
-    "line" : 352,
+    "line" : 340,
     "preview" : "// @anchor: smart_detect_baseconv_end"
   }, {
-    "id" : "smart_detect_digitwords",
-    "line" : 356,
-    "preview" : "// @anchor: smart_detect_digitwords"
-  }, {
-    "id" : "smart_detect_digitwords_end",
-    "line" : 524,
-    "preview" : "// @anchor: smart_detect_digitwords_end"
-  }, {
     "id" : "smart_detect_builders_end",
-    "line" : 527,
+    "line" : 342,
     "preview" : "// @anchor: smart_detect_builders_end"
   }, {
+    "id" : "smart_detect_dict",
+    "line" : 344,
+    "preview" : "// @anchor: smart_detect_dict"
+  }, {
+    "id" : "smart_detect_dict_end",
+    "line" : 353,
+    "preview" : "// @anchor: smart_detect_dict_end"
+  }, {
     "id" : "smart_detect_detect",
-    "line" : 529,
+    "line" : 355,
     "preview" : "// @anchor: smart_detect_detect"
   }, {
     "id" : "smart_detect_detect_end",
-    "line" : 595,
+    "line" : 420,
     "preview" : "// @anchor: smart_detect_detect_end"
   }, {
-    "id" : "smart_detect_render",
-    "line" : 597,
-    "preview" : "// @anchor: smart_detect_render"
+    "id" : "smart_detect_export",
+    "line" : 422,
+    "preview" : "// @anchor: smart_detect_export"
   }, {
-    "id" : "smart_detect_render_item",
-    "line" : 678,
-    "preview" : "// @anchor: smart_detect_render_item"
-  }, {
-    "id" : "smart_detect_render_item_end",
-    "line" : 795,
-    "preview" : "// @anchor: smart_detect_render_item_end"
-  }, {
-    "id" : "smart_detect_render_end",
-    "line" : 797,
-    "preview" : "// @anchor: smart_detect_render_end"
+    "id" : "smart_detect_export_end",
+    "line" : 427,
+    "preview" : "// @anchor: smart_detect_export_end"
   } ],
   "modules/tapcode.js" : [ {
     "id" : "tapcode_intro",
@@ -992,40 +1050,100 @@
     "preview" : "<!-- @anchor: proj_arch -->"
   }, {
     "id" : "proj_arch_end",
-    "line" : 44,
+    "line" : 48,
     "preview" : "<!-- @anchor: proj_arch_end -->"
   }, {
     "id" : "proj_decisions",
-    "line" : 46,
+    "line" : 50,
     "preview" : "<!-- @anchor: proj_decisions -->"
   }, {
     "id" : "proj_decisions_end",
-    "line" : 96,
+    "line" : 108,
     "preview" : "<!-- @anchor: proj_decisions_end -->"
   }, {
     "id" : "proj_conventions",
-    "line" : 98,
+    "line" : 110,
     "preview" : "<!-- @anchor: proj_conventions -->"
   }, {
     "id" : "proj_conventions_end",
-    "line" : 111,
+    "line" : 128,
     "preview" : "<!-- @anchor: proj_conventions_end -->"
   }, {
     "id" : "proj_limits",
-    "line" : 113,
+    "line" : 130,
     "preview" : "<!-- @anchor: proj_limits -->"
   }, {
     "id" : "proj_limits_end",
-    "line" : 137,
+    "line" : 159,
     "preview" : "<!-- @anchor: proj_limits_end -->"
   }, {
     "id" : "proj_start",
-    "line" : 139,
+    "line" : 161,
     "preview" : "<!-- @anchor: proj_start -->"
   }, {
     "id" : "proj_start_end",
-    "line" : 150,
+    "line" : 172,
     "preview" : "<!-- @anchor: proj_start_end -->"
+  } ],
+  "script-braille-input.js" : [ {
+    "id" : "script_braille_input_intro",
+    "line" : 1,
+    "preview" : "// @anchor: script_braille_input_intro"
+  }, {
+    "id" : "script_braille_input",
+    "line" : 7,
+    "preview" : "// @anchor: script_braille_input"
+  }, {
+    "id" : "script_braille_input_end",
+    "line" : 128,
+    "preview" : "// @anchor: script_braille_input_end"
+  } ],
+  "script-dict.js" : [ {
+    "id" : "script_dict_intro",
+    "line" : 1,
+    "preview" : "// @anchor: script_dict_intro"
+  }, {
+    "id" : "script_dict",
+    "line" : 6,
+    "preview" : "// @anchor: script_dict"
+  }, {
+    "id" : "script_dict_end",
+    "line" : 74,
+    "preview" : "// @anchor: script_dict_end"
+  }, {
+    "id" : "script_dict_export",
+    "line" : 76,
+    "preview" : "// @anchor: script_dict_export"
+  }, {
+    "id" : "script_dict_export_end",
+    "line" : 81,
+    "preview" : "// @anchor: script_dict_export_end"
+  } ],
+  "script-pigpen-input.js" : [ {
+    "id" : "script_pigpen_input_intro",
+    "line" : 1,
+    "preview" : "// @anchor: script_pigpen_input_intro"
+  }, {
+    "id" : "script_pigpen_input",
+    "line" : 7,
+    "preview" : "// @anchor: script_pigpen_input"
+  }, {
+    "id" : "script_pigpen_input_end",
+    "line" : 153,
+    "preview" : "// @anchor: script_pigpen_input_end"
+  } ],
+  "script-semaphore-input.js" : [ {
+    "id" : "script_semaphore_input_intro",
+    "line" : 1,
+    "preview" : "// @anchor: script_semaphore_input_intro"
+  }, {
+    "id" : "script_semaphore_input",
+    "line" : 7,
+    "preview" : "// @anchor: script_semaphore_input"
+  }, {
+    "id" : "script_semaphore_input_end",
+    "line" : 130,
+    "preview" : "// @anchor: script_semaphore_input_end"
   } ],
   "script.js" : [ {
     "id" : "script_intro",
@@ -1033,123 +1151,99 @@
     "preview" : "// @anchor: script_intro"
   }, {
     "id" : "script_dom_refs",
-    "line" : 14,
+    "line" : 15,
     "preview" : "// @anchor: script_dom_refs"
   }, {
     "id" : "script_dom_refs_end",
-    "line" : 88,
+    "line" : 53,
     "preview" : "// @anchor: script_dom_refs_end"
   }, {
     "id" : "script_state",
-    "line" : 90,
+    "line" : 55,
     "preview" : "// @anchor: script_state"
   }, {
     "id" : "script_state_end",
-    "line" : 107,
+    "line" : 58,
     "preview" : "// @anchor: script_state_end"
   }, {
-    "id" : "script_mode_switch",
-    "line" : 109,
-    "preview" : "// @anchor: script_mode_switch"
-  }, {
-    "id" : "script_mode_switch_end",
-    "line" : 159,
-    "preview" : "// @anchor: script_mode_switch_end"
-  }, {
-    "id" : "script_output_textbox",
-    "line" : 161,
-    "preview" : "// @anchor: script_output_textbox"
-  }, {
-    "id" : "script_output_textbox_end",
-    "line" : 200,
-    "preview" : "// @anchor: script_output_textbox_end"
-  }, {
-    "id" : "script_braille_input",
-    "line" : 203,
-    "preview" : "// @anchor: script_braille_input"
-  }, {
-    "id" : "script_braille_input_end",
-    "line" : 314,
-    "preview" : "// @anchor: script_braille_input_end"
-  }, {
-    "id" : "script_semaphore_input",
-    "line" : 316,
-    "preview" : "// @anchor: script_semaphore_input"
-  }, {
-    "id" : "script_semaphore_input_end",
-    "line" : 466,
-    "preview" : "// @anchor: script_semaphore_input_end"
-  }, {
-    "id" : "script_pigpen_input",
-    "line" : 468,
-    "preview" : "// @anchor: script_pigpen_input"
-  }, {
-    "id" : "script_pigpen_input_end",
-    "line" : 589,
-    "preview" : "// @anchor: script_pigpen_input_end"
-  }, {
-    "id" : "script_keyboard_shortcuts",
-    "line" : 591,
-    "preview" : "// @anchor: script_keyboard_shortcuts"
-  }, {
-    "id" : "script_keyboard_shortcuts_end",
-    "line" : 645,
-    "preview" : "// @anchor: script_keyboard_shortcuts_end"
-  }, {
     "id" : "script_append_text",
-    "line" : 649,
+    "line" : 60,
     "preview" : "// @anchor: script_append_text"
   }, {
     "id" : "script_append_text_end",
-    "line" : 660,
+    "line" : 66,
     "preview" : "// @anchor: script_append_text_end"
   }, {
+    "id" : "script_context",
+    "line" : 68,
+    "preview" : "// @anchor: script_context"
+  }, {
+    "id" : "script_context_end",
+    "line" : 83,
+    "preview" : "// @anchor: script_context_end"
+  }, {
+    "id" : "script_mode_switch",
+    "line" : 85,
+    "preview" : "// @anchor: script_mode_switch"
+  }, {
+    "id" : "script_mode_switch_end",
+    "line" : 127,
+    "preview" : "// @anchor: script_mode_switch_end"
+  }, {
+    "id" : "script_keyboard_shortcuts",
+    "line" : 129,
+    "preview" : "// @anchor: script_keyboard_shortcuts"
+  }, {
+    "id" : "script_keyboard_shortcuts_end",
+    "line" : 154,
+    "preview" : "// @anchor: script_keyboard_shortcuts_end"
+  }, {
     "id" : "script_render_ciphers",
-    "line" : 662,
+    "line" : 156,
     "preview" : "// @anchor: script_render_ciphers"
   }, {
     "id" : "script_render_ciphers_end",
-    "line" : 686,
+    "line" : 179,
     "preview" : "// @anchor: script_render_ciphers_end"
   }, {
     "id" : "script_smart_detect",
-    "line" : 688,
+    "line" : 181,
     "preview" : "// @anchor: script_smart_detect"
   }, {
     "id" : "script_smart_detect_end",
-    "line" : 701,
+    "line" : 193,
     "preview" : "// @anchor: script_smart_detect_end"
   }, {
     "id" : "script_translate",
-    "line" : 703,
+    "line" : 195,
     "preview" : "// @anchor: script_translate"
   }, {
     "id" : "script_translate_end",
-    "line" : 728,
+    "line" : 219,
     "preview" : "// @anchor: script_translate_end"
   }, {
     "id" : "script_word_dict",
-    "line" : 731,
+    "line" : 221,
     "preview" : "// @anchor: script_word_dict"
   }, {
     "id" : "script_word_dict_end",
-    "line" : 810,
+    "line" : 242,
     "preview" : "// @anchor: script_word_dict_end"
   }, {
     "id" : "script_input_events",
-    "line" : 813,
+    "line" : 244,
     "preview" : "// @anchor: script_input_events"
   }, {
     "id" : "script_input_events_end",
-    "line" : 836,
+    "line" : 266,
     "preview" : "// @anchor: script_input_events_end"
   }, {
     "id" : "script_init",
-    "line" : 838,
+    "line" : 268,
     "preview" : "// @anchor: script_init"
   }, {
     "id" : "script_init_end",
-    "line" : 864,
+    "line" : 293,
     "preview" : "// @anchor: script_init_end"
   } ],
   "style.css" : [ {
@@ -1234,95 +1328,95 @@
     "preview" : "/* @anchor: css_braille_view */"
   }, {
     "id" : "css_braille_view_end",
-    "line" : 1136,
+    "line" : 1104,
     "preview" : "/* @anchor: css_braille_view_end */"
   }, {
     "id" : "css_a1z26_view",
-    "line" : 1138,
+    "line" : 1106,
     "preview" : "/* @anchor: css_a1z26_view */"
   }, {
     "id" : "css_a1z26_view_end",
-    "line" : 1187,
+    "line" : 1155,
     "preview" : "/* @anchor: css_a1z26_view_end */"
   }, {
     "id" : "css_tapcode_view",
-    "line" : 1189,
+    "line" : 1157,
     "preview" : "/* @anchor: css_tapcode_view */"
   }, {
     "id" : "css_tapcode_view_end",
-    "line" : 1249,
+    "line" : 1217,
     "preview" : "/* @anchor: css_tapcode_view_end */"
   }, {
     "id" : "css_semaphore_view",
-    "line" : 1251,
+    "line" : 1219,
     "preview" : "/* @anchor: css_semaphore_view */"
   }, {
     "id" : "css_semaphore_view_end",
-    "line" : 1297,
+    "line" : 1265,
     "preview" : "/* @anchor: css_semaphore_view_end */"
   }, {
     "id" : "css_nato_view",
-    "line" : 1299,
+    "line" : 1267,
     "preview" : "/* @anchor: css_nato_view */"
   }, {
     "id" : "css_nato_view_end",
-    "line" : 1340,
+    "line" : 1308,
     "preview" : "/* @anchor: css_nato_view_end */"
   }, {
     "id" : "css_morse_view",
-    "line" : 1342,
+    "line" : 1310,
     "preview" : "/* @anchor: css_morse_view */"
   }, {
     "id" : "css_morse_view_end",
-    "line" : 1398,
+    "line" : 1366,
     "preview" : "/* @anchor: css_morse_view_end */"
   }, {
     "id" : "css_pigpen_view",
-    "line" : 1400,
+    "line" : 1368,
     "preview" : "/* @anchor: css_pigpen_view */"
   }, {
     "id" : "css_pigpen_view_end",
-    "line" : 1457,
+    "line" : 1425,
     "preview" : "/* @anchor: css_pigpen_view_end */"
   }, {
     "id" : "css_ascii_view",
-    "line" : 1459,
+    "line" : 1427,
     "preview" : "/* @anchor: css_ascii_view */"
   }, {
     "id" : "css_ascii_view_end",
-    "line" : 1516,
+    "line" : 1484,
     "preview" : "/* @anchor: css_ascii_view_end */"
   }, {
     "id" : "css_numeral_view",
-    "line" : 1518,
+    "line" : 1486,
     "preview" : "/* @anchor: css_numeral_view */"
   }, {
     "id" : "css_numeral_view_end",
-    "line" : 1560,
+    "line" : 1528,
     "preview" : "/* @anchor: css_numeral_view_end */"
   }, {
     "id" : "css_translate",
-    "line" : 1563,
+    "line" : 1531,
     "preview" : "/* @anchor: css_translate */"
   }, {
     "id" : "css_translate_end",
-    "line" : 1612,
+    "line" : 1580,
     "preview" : "/* @anchor: css_translate_end */"
   }, {
     "id" : "css_footer",
-    "line" : 1615,
+    "line" : 1583,
     "preview" : "/* @anchor: css_footer */"
   }, {
     "id" : "css_footer_end",
-    "line" : 1626,
+    "line" : 1594,
     "preview" : "/* @anchor: css_footer_end */"
   }, {
     "id" : "css_responsive",
-    "line" : 1628,
+    "line" : 1596,
     "preview" : "/* @anchor: css_responsive */"
   }, {
     "id" : "css_responsive_end",
-    "line" : 1793,
+    "line" : 1761,
     "preview" : "/* @anchor: css_responsive_end */"
   } ],
   "tmp/audit-static.js" : [ {
@@ -1503,8 +1597,24 @@
     "line" : 206,
     "preview" : "<!-- @anchor: log_021_end -->"
   }, {
-    "id" : "update_record_anchor",
+    "id" : "log_022",
     "line" : 209,
+    "preview" : "<!-- @anchor: log_022 -->"
+  }, {
+    "id" : "log_022_end",
+    "line" : 217,
+    "preview" : "<!-- @anchor: log_022_end -->"
+  }, {
+    "id" : "log_023",
+    "line" : 221,
+    "preview" : "<!-- @anchor: log_023 -->"
+  }, {
+    "id" : "log_023_end",
+    "line" : 229,
+    "preview" : "<!-- @anchor: log_023_end -->"
+  }, {
+    "id" : "update_record_anchor",
+    "line" : 232,
     "preview" : "<!-- @anchor: update_record_anchor -->"
   } ]
 }

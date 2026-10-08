@@ -99,7 +99,7 @@
   }, {
     "id" : "caesar_input",
     "line" : 23,
-    "desc" : "输入区域：60 字符上限的英文文本输入与清空按钮"
+    "desc" : "输入区域：英文文本输入（不设长度上限）与清空按钮"
   }, {
     "id" : "caesar_input_end",
     "line" : 42,
@@ -199,35 +199,35 @@
   }, {
     "id" : "caesar_input_handler",
     "line" : 321,
-    "desc" : "输入处理：更新字符计数（含 60 上限）并刷新结果；清空复位",
+    "desc" : "输入处理：更新字符计数（不设长度上限）并刷新结果；清空复位",
     "symbol" : "onInputChange"
   }, {
     "id" : "caesar_input_handler_end",
-    "line" : 342,
+    "line" : 336,
     "desc" : ""
   }, {
     "id" : "caesar_event_bindings",
-    "line" : 344,
+    "line" : 338,
     "desc" : "绑定输入与清空事件"
   }, {
     "id" : "caesar_event_bindings_end",
-    "line" : 348,
+    "line" : 342,
     "desc" : ""
   }, {
     "id" : "caesar_word_toggle",
-    "line" : 350,
+    "line" : 344,
     "desc" : "隐藏开关：双击页面标题切换「词典词标记」，标题 title 属性给出暗号提示"
   }, {
     "id" : "caesar_word_toggle_end",
-    "line" : 360,
+    "line" : 354,
     "desc" : ""
   }, {
     "id" : "caesar_init",
-    "line" : 362,
+    "line" : 356,
     "desc" : "初始化：空渲染 + 异步加载隐藏玩法词典 + 延迟载入示例 \"HELLO\""
   }, {
     "id" : "caesar_init_end",
-    "line" : 375,
+    "line" : 370,
     "desc" : ""
   } ],
   "cipher-data.js" : [ {
@@ -354,10 +354,10 @@
   }, {
     "id" : "html_scripts",
     "line" : 372,
-    "desc" : "脚本加载顺序：数据文件 → 各密码模块（盲文 / 摩斯 / 猪圈 / ASCII / 进制等）→ 词典工具与内置词种子 → 翻译跳转工具 → 半智能识别 → 主脚本；顺序不可打乱"
+    "desc" : "脚本加载顺序：数据文件 → 各密码模块（盲文 / 摩斯 / 猪圈 / ASCII / 进制等）→ 词典工具与内置词种子 → 翻译跳转工具 → 词典分段数字串（DigitWords）→ 半智能识别（核心 SmartDetect + 渲染 SmartDetectRender）→ 输入控制器（盲文 / 旗语 / 猪圈）与词典加载器 WordDict → 主脚本；顺序不可打乱"
   }, {
     "id" : "html_scripts_end",
-    "line" : 391,
+    "line" : 397,
     "desc" : ""
   } ],
   "modules/a1z26.js" : [ {
@@ -486,11 +486,11 @@
   }, {
     "id" : "braille_render",
     "line" : 74,
-    "desc" : "在容器中渲染盲文可视化：Unicode 行 + 3×2 点阵行",
+    "desc" : "在容器中渲染盲文：每个字符一张紧凑卡片（盲文字符 + 字母标签），不再重复绘制点阵",
     "symbol" : "render"
   }, {
     "id" : "braille_render_end",
-    "line" : 148,
+    "line" : 122,
     "desc" : ""
   } ],
   "modules/cantor.js" : [ {
@@ -536,6 +536,49 @@
   }, {
     "id" : "cantor_decode_end",
     "line" : 60,
+    "desc" : ""
+  } ],
+  "modules/digit-words.js" : [ {
+    "id" : "digit_words_intro",
+    "line" : 1,
+    "desc" : "数字串的词典分段：把「数字 → 字母（A1Z26 1–26）」的整串切分为词典词，产出智能识别的「A1Z26 分段匹配」栏目",
+    "symbol" : "dictTiers"
+  }, {
+    "id" : "digit_words_ctx",
+    "line" : 17,
+    "desc" : "词典分层与上下文：归一化词典为分层数组，构建「可分词集合 + 词→最低档位 + 词前缀集合 + 最长词」",
+    "symbol" : "dictTiers"
+  }, {
+    "id" : "digit_words_ctx_end",
+    "line" : 74,
+    "desc" : "",
+    "symbol" : "wordBlocksAt"
+  }, {
+    "id" : "digit_words_decompose",
+    "line" : 76,
+    "desc" : "单串数字的递归分解：wordBlocksAt 枚举所有「能译成词典词」的小段（前缀剪枝），",
+    "symbol" : "wordBlocksAt"
+  }, {
+    "id" : "digit_words_decompose_end",
+    "line" : 159,
+    "desc" : "",
+    "symbol" : "findDigitWords"
+  }, {
+    "id" : "digit_words_entries",
+    "line" : 161,
+    "desc" : "分段入口与栏目构造：findDigitWords（无空格整串）/ findDigitPhrase（含空格词组）；",
+    "symbol" : "findDigitWords"
+  }, {
+    "id" : "digit_words_entries_end",
+    "line" : 278,
+    "desc" : ""
+  }, {
+    "id" : "digit_words_export",
+    "line" : 280,
+    "desc" : "暴露接口，并保留 Node 自测用的 module 导出"
+  }, {
+    "id" : "digit_words_export_end",
+    "line" : 285,
     "desc" : ""
   } ],
   "modules/morse.js" : [ {
@@ -875,98 +918,120 @@
     "line" : 205,
     "desc" : ""
   } ],
-  "modules/smart-detect.js" : [ {
-    "id" : "smart_detect_intro",
+  "modules/smart-detect-render.js" : [ {
+    "id" : "smart_detect_render_intro",
     "line" : 1,
-    "desc" : "半智能识别模块：分析文本输入判定可能的编码（摩斯 / 二进制 / 三进制 / 十六进制 / A1Z26 / 敲击码 / ASCII / 康托展开 / 无空格数字串的词典词分段），并渲染可切换栏目",
-    "symbol" : "parseTokens"
-  }, {
-    "id" : "smart_detect_parse",
-    "line" : 31,
-    "desc" : "解析输入：仅当为「数字 / 十六进制字符 + 空白」模式时返回 token 数组，否则返回 null",
-    "symbol" : "parseTokens"
-  }, {
-    "id" : "smart_detect_parse_end",
-    "line" : 45,
-    "desc" : "",
-    "symbol" : "parseMorseWords"
-  }, {
-    "id" : "smart_detect_morse",
-    "line" : 47,
-    "desc" : "摩斯解析：识别「点划 + 空格 + 单词分隔(/ 或 |)」输入，返回按单词分组的点划数组",
-    "symbol" : "parseMorseWords"
-  }, {
-    "id" : "smart_detect_morse_end",
-    "line" : 70,
-    "desc" : "",
-    "symbol" : "isPermOf1234"
-  }, {
-    "id" : "smart_detect_rules",
-    "line" : 73,
-    "desc" : "判定辅助：1234 排列、合法敲击码 token、5 位 / 7 位二进制 token、三进制 token、十六进制模式",
-    "symbol" : "isPermOf1234"
-  }, {
-    "id" : "smart_detect_rules_end",
-    "line" : 108,
-    "desc" : "",
-    "symbol" : "buildChips"
-  }, {
-    "id" : "smart_detect_builders",
-    "line" : 110,
-    "desc" : "构造各编码的识别结果对象：标题、规则说明、结果串与逐 token 映射 chips",
-    "symbol" : "buildChips"
-  }, {
-    "id" : "smart_detect_baseconv",
-    "line" : 252,
-    "desc" : "进制转换栏目：各 token 按 srcBase 解析后转三进制（位数对齐），并把二进制按位宽用途区分——",
-    "symbol" : "padLeft"
-  }, {
-    "id" : "smart_detect_baseconv_end",
-    "line" : 352,
-    "desc" : "",
-    "symbol" : "dictTiers"
-  }, {
-    "id" : "smart_detect_digitwords",
-    "line" : 356,
-    "desc" : "无空格数字串的词典分段：从头部取一个能译成词典词的子串，递归分解剩余部分；",
-    "symbol" : "dictTiers"
-  }, {
-    "id" : "smart_detect_digitwords_end",
-    "line" : 524,
-    "desc" : "",
-    "symbol" : "detect"
-  }, {
-    "id" : "smart_detect_builders_end",
-    "line" : 527,
-    "desc" : "",
-    "symbol" : "detect"
-  }, {
-    "id" : "smart_detect_detect",
-    "line" : 529,
-    "desc" : "核心判定：摩斯 / 二进制 / 康托展开 / 十六进制独占；ASCII 与 A1Z26 互斥；敲击码 / 三进制 / 词典分段为追加项；始终追加进制转换",
-    "symbol" : "detect"
-  }, {
-    "id" : "smart_detect_detect_end",
-    "line" : 595,
-    "desc" : "",
-    "symbol" : "primaryView"
+    "desc" : "半智能识别渲染：把 SmartDetect.detect 的候选渲染到面板（过滤可解码过半、自动择优、并列按钮切换栏目与视图）",
+    "symbol" : "core"
   }, {
     "id" : "smart_detect_render",
-    "line" : 597,
+    "line" : 29,
     "desc" : "渲染识别面板：过滤出「可解码过半」的候选，自动选中「译出字母最多」的一项；多候选以并列小按钮切换",
     "symbol" : "primaryView"
   }, {
+    "id" : "smart_detect_render_end",
+    "line" : 108,
+    "desc" : "",
+    "symbol" : "renderItem"
+  }, {
     "id" : "smart_detect_render_item",
-    "line" : 678,
+    "line" : 110,
     "desc" : "渲染单个识别栏目：标题 + 视图（多于一个视图时以并列小按钮切换，如进制）+ 规则说明 + 结果行 + 附注 + 映射 chips",
     "symbol" : "renderItem"
   }, {
     "id" : "smart_detect_render_item_end",
-    "line" : 795,
+    "line" : 226,
     "desc" : ""
   }, {
-    "id" : "smart_detect_render_end",
-    "line" : 797,
+    "id" : "smart_detect_render_export",
+    "line" : 228,
+    "desc" : "暴露渲染接口，并保留 Node 自测用的 module 导出"
+  }, {
+    "id" : "smart_detect_render_export_end",
+    "line" : 233,
+    "desc" : ""
+  } ],
+  "modules/smart-detect.js" : [ {
+    "id" : "smart_detect_intro",
+    "line" : 1,
+    "desc" : "半智能识别核心：分析文本输入、判定可能的编码并构造候选结果对象（纯逻辑，与 DOM 无关）；渲染见 smart-detect-render.js",
+    "symbol" : "parseTokens"
+  }, {
+    "id" : "smart_detect_parse",
+    "line" : 24,
+    "desc" : "解析输入：仅当为「数字 / 十六进制字符 + 空白」模式时返回 token 数组，否则返回 null",
+    "symbol" : "parseTokens"
+  }, {
+    "id" : "smart_detect_parse_end",
+    "line" : 38,
+    "desc" : "",
+    "symbol" : "parseMorseWords"
+  }, {
+    "id" : "smart_detect_morse",
+    "line" : 40,
+    "desc" : "摩斯解析：识别「点划 + 空格 + 单词分隔(/ 或 |)」输入，返回按单词分组的点划数组",
+    "symbol" : "parseMorseWords"
+  }, {
+    "id" : "smart_detect_morse_end",
+    "line" : 62,
+    "desc" : "",
+    "symbol" : "isPermOf1234"
+  }, {
+    "id" : "smart_detect_rules",
+    "line" : 64,
+    "desc" : "判定辅助：1234 排列、合法敲击码 token、5 位 / 7 位二进制 token、三进制 token、十六进制模式",
+    "symbol" : "isPermOf1234"
+  }, {
+    "id" : "smart_detect_rules_end",
+    "line" : 97,
+    "desc" : "",
+    "symbol" : "buildChips"
+  }, {
+    "id" : "smart_detect_builders",
+    "line" : 99,
+    "desc" : "构造各编码的识别结果对象：标题、规则说明、结果串与逐 token 映射 chips",
+    "symbol" : "buildChips"
+  }, {
+    "id" : "smart_detect_baseconv",
+    "line" : 241,
+    "desc" : "进制转换栏目：各 token 按 srcBase 解析后转三进制（位数对齐），并把二进制按位宽用途区分——",
+    "symbol" : "padLeft"
+  }, {
+    "id" : "smart_detect_baseconv_end",
+    "line" : 340,
+    "desc" : "",
+    "symbol" : "digitWordsTool"
+  }, {
+    "id" : "smart_detect_builders_end",
+    "line" : 342,
+    "desc" : "",
+    "symbol" : "digitWordsTool"
+  }, {
+    "id" : "smart_detect_dict",
+    "line" : 344,
+    "desc" : "延迟取用词典分段工具（浏览器读全局 DigitWords；Node 下按相对路径 require）",
+    "symbol" : "digitWordsTool"
+  }, {
+    "id" : "smart_detect_dict_end",
+    "line" : 353,
+    "desc" : "",
+    "symbol" : "detect"
+  }, {
+    "id" : "smart_detect_detect",
+    "line" : 355,
+    "desc" : "核心判定：摩斯 / 二进制 / 康托展开 / 十六进制独占；ASCII 与 A1Z26 互斥；敲击码 / 三进制 / 词典分段为追加项；始终追加进制转换",
+    "symbol" : "detect"
+  }, {
+    "id" : "smart_detect_detect_end",
+    "line" : 420,
+    "desc" : ""
+  }, {
+    "id" : "smart_detect_export",
+    "line" : 422,
+    "desc" : "暴露核心接口（渲染见 SmartDetectRender），并保留 Node 自测用的 module 导出"
+  }, {
+    "id" : "smart_detect_export_end",
+    "line" : 427,
     "desc" : ""
   } ],
   "modules/tapcode.js" : [ {
@@ -1149,192 +1214,230 @@
     "desc" : ""
   }, {
     "id" : "proj_arch_end",
-    "line" : 44,
+    "line" : 48,
     "desc" : ""
   }, {
     "id" : "proj_decisions",
-    "line" : 46,
+    "line" : 50,
     "desc" : "# 关键决策"
   }, {
     "id" : "proj_decisions_end",
-    "line" : 96,
+    "line" : 108,
     "desc" : ""
   }, {
     "id" : "proj_conventions",
-    "line" : 98,
+    "line" : 110,
     "desc" : ""
   }, {
     "id" : "proj_conventions_end",
-    "line" : 111,
+    "line" : 128,
     "desc" : ""
   }, {
     "id" : "proj_limits",
-    "line" : 113,
+    "line" : 130,
     "desc" : ""
   }, {
     "id" : "proj_limits_end",
-    "line" : 137,
+    "line" : 159,
     "desc" : ""
   }, {
     "id" : "proj_start",
-    "line" : 139,
+    "line" : 161,
     "desc" : "# 启动方式"
   }, {
     "id" : "proj_start_end",
-    "line" : 150,
+    "line" : 172,
+    "desc" : ""
+  } ],
+  "script-braille-input.js" : [ {
+    "id" : "script_braille_input_intro",
+    "line" : 1,
+    "desc" : "盲文点阵输入控制器：把 2×3 点阵状态换算为盲文 Unicode 与字母，支持点选切换、添加到文本；",
+    "symbol" : "init"
+  }, {
+    "id" : "script_braille_input",
+    "line" : 7,
+    "desc" : "盲文点阵输入：点阵状态换算 Unicode 与字母、点选切换、添加到文本与事件绑定",
+    "symbol" : "init"
+  }, {
+    "id" : "script_braille_input_end",
+    "line" : 128,
+    "desc" : ""
+  } ],
+  "script-dict.js" : [ {
+    "id" : "script_dict_intro",
+    "line" : 1,
+    "desc" : "词典加载器：按可靠性逐级回退获取词典（分层词表 → 整部词表 → 内置词种子），供智能识别分段与翻译跳转的成词判定使用",
+    "symbol" : "countWords"
+  }, {
+    "id" : "script_dict",
+    "line" : 6,
+    "desc" : "词典来源与回退链：分层词典 resources/words-tiered.txt → 整部词表 resources/yawl-all.txt → 内置词种子 WordSeed；",
+    "symbol" : "countWords"
+  }, {
+    "id" : "script_dict_end",
+    "line" : 74,
+    "desc" : ""
+  }, {
+    "id" : "script_dict_export",
+    "line" : 76,
+    "desc" : "暴露接口，并保留 Node 自测用的 module 导出"
+  }, {
+    "id" : "script_dict_export_end",
+    "line" : 81,
+    "desc" : ""
+  } ],
+  "script-pigpen-input.js" : [ {
+    "id" : "script_pigpen_input_intro",
+    "line" : 1,
+    "desc" : "猪圈字形输入控制器：按「九宫格（无点 / 加点）/ 叉形（无点 / 加点）」四组生成字形按钮，点击逐字累积；",
+    "symbol" : "init"
+  }, {
+    "id" : "script_pigpen_input",
+    "line" : 7,
+    "desc" : "猪圈字形输入：四组字形按钮的生成与排版、点击追加、空格 / 退格 / 清除与整体写入文本框",
+    "symbol" : "init"
+  }, {
+    "id" : "script_pigpen_input_end",
+    "line" : 153,
+    "desc" : ""
+  } ],
+  "script-semaphore-input.js" : [ {
+    "id" : "script_semaphore_input_intro",
+    "line" : 1,
+    "desc" : "旗语九宫格输入控制器：按两次点击选择双臂方向并解码字母，支持添加到文本；",
+    "symbol" : "init"
+  }, {
+    "id" : "script_semaphore_input",
+    "line" : 7,
+    "desc" : "旗语九宫格输入：按两次点击选择双臂方向、解码字母、添加到文本与事件绑定",
+    "symbol" : "init"
+  }, {
+    "id" : "script_semaphore_input_end",
+    "line" : 130,
     "desc" : ""
   } ],
   "script.js" : [ {
     "id" : "script_intro",
     "line" : 1,
-    "desc" : "主脚本：协调输入事件，把文本分发给各密码模块渲染；并管理四种输入模式（文本 / 盲文 / 旗语 / 猪圈）的切换与解码",
-    "symbol" : "switchMode"
+    "desc" : "主脚本（协调层）：缓存共享 DOM，管理输入模式切换与全局键盘快捷键，把文本分发给各密码模块渲染，",
+    "symbol" : "appendToTextInput"
   }, {
     "id" : "script_dom_refs",
-    "line" : 14,
-    "desc" : "缓存页面 DOM 引用（输入控件、模式区、各密码输出容器、模块引用）",
-    "symbol" : "switchMode"
+    "line" : 15,
+    "desc" : "缓存页面共享 DOM 引用（文本输入控件、模式选择器、各密码输出容器、模块引用、智能识别与翻译跳转容器）",
+    "symbol" : "appendToTextInput"
   }, {
     "id" : "script_dom_refs_end",
-    "line" : 88,
+    "line" : 53,
     "desc" : "",
-    "symbol" : "switchMode"
+    "symbol" : "appendToTextInput"
   }, {
     "id" : "script_state",
-    "line" : 90,
-    "desc" : "运行时状态：当前输入模式、盲文点阵与累积文本、旗语双臂选择、猪圈累积字形文本",
-    "symbol" : "switchMode"
+    "line" : 55,
+    "desc" : "运行时状态：仅保留当前输入模式；各特殊输入模式的点阵 / 双臂方向 / 累积文本由对应输入控制器自行维护",
+    "symbol" : "appendToTextInput"
   }, {
     "id" : "script_state_end",
-    "line" : 107,
-    "desc" : "",
-    "symbol" : "switchMode"
-  }, {
-    "id" : "script_mode_switch",
-    "line" : 109,
-    "desc" : "切换输入模式：高亮按钮、切换输入区显示、重置对应输入状态",
-    "symbol" : "switchMode"
-  }, {
-    "id" : "script_mode_switch_end",
-    "line" : 159,
-    "desc" : "",
-    "symbol" : "updateBrailleOutputTextbox"
-  }, {
-    "id" : "script_output_textbox",
-    "line" : 161,
-    "desc" : "各输入模式「翻译结果」累积文本框的刷新与清空",
-    "symbol" : "updateBrailleOutputTextbox"
-  }, {
-    "id" : "script_output_textbox_end",
-    "line" : 200,
-    "desc" : "",
-    "symbol" : "computeBrailleFromDots"
-  }, {
-    "id" : "script_braille_input",
-    "line" : 203,
-    "desc" : "盲文点阵输入：点阵状态换算 Unicode 与字母、点选切换、添加到文本与事件绑定",
-    "symbol" : "computeBrailleFromDots"
-  }, {
-    "id" : "script_braille_input_end",
-    "line" : 314,
-    "desc" : "",
-    "symbol" : "computeSemaphoreLetter"
-  }, {
-    "id" : "script_semaphore_input",
-    "line" : 316,
-    "desc" : "旗语九宫格输入：按两次点击选择双臂方向、解码字母、添加到文本与事件绑定",
-    "symbol" : "computeSemaphoreLetter"
-  }, {
-    "id" : "script_semaphore_input_end",
-    "line" : 466,
-    "desc" : "",
-    "symbol" : "createPigpenGlyphButton"
-  }, {
-    "id" : "script_pigpen_input",
-    "line" : 468,
-    "desc" : "猪圈字形输入：按「九宫格（无点 / 加点）/ 叉形（无点 / 加点）」四组生成字形按钮，点击逐字追加；支持空格、退格与整体写入文本框",
-    "symbol" : "createPigpenGlyphButton"
-  }, {
-    "id" : "script_pigpen_input_end",
-    "line" : 589,
-    "desc" : "",
-    "symbol" : "isEditableTarget"
-  }, {
-    "id" : "script_keyboard_shortcuts",
-    "line" : 591,
-    "desc" : "键盘快捷键：盲文 / 旗语模式下按空格把当前字母添加到文本；猪圈模式下空格加空格、退格删末位。",
-    "symbol" : "isEditableTarget"
-  }, {
-    "id" : "script_keyboard_shortcuts_end",
-    "line" : 645,
+    "line" : 58,
     "desc" : "",
     "symbol" : "appendToTextInput"
   }, {
     "id" : "script_append_text",
-    "line" : 649,
+    "line" : 60,
     "desc" : "通用文本追加：把单个字母写入文本框并派发 input 事件（不设长度上限）",
     "symbol" : "appendToTextInput"
   }, {
     "id" : "script_append_text_end",
-    "line" : 660,
+    "line" : 66,
+    "desc" : "",
+    "symbol" : "switchMode"
+  }, {
+    "id" : "script_context",
+    "line" : 68,
+    "desc" : "应用上下文：各特殊输入控制器经它登记「模式输入区 + 进入回调」与「键盘快捷键」，并共享「写入文本框」入口",
+    "symbol" : "switchMode"
+  }, {
+    "id" : "script_context_end",
+    "line" : 83,
+    "desc" : "",
+    "symbol" : "switchMode"
+  }, {
+    "id" : "script_mode_switch",
+    "line" : 85,
+    "desc" : "切换输入模式：高亮按钮、按注册表显隐各输入区、执行对应输入区的「进入」回调",
+    "symbol" : "switchMode"
+  }, {
+    "id" : "script_mode_switch_end",
+    "line" : 127,
+    "desc" : "",
+    "symbol" : "isEditableTarget"
+  }, {
+    "id" : "script_keyboard_shortcuts",
+    "line" : 129,
+    "desc" : "键盘快捷键：按当前模式把空格 / 退格分派给对应输入控制器登记的快捷键处理器（见各 *-input.js）。",
+    "symbol" : "isEditableTarget"
+  }, {
+    "id" : "script_keyboard_shortcuts_end",
+    "line" : 154,
     "desc" : "",
     "symbol" : "renderCard"
   }, {
     "id" : "script_render_ciphers",
-    "line" : 662,
+    "line" : 156,
     "desc" : "把文本分发给各密码模块渲染到各自容器；逐模块隔离异常——任一模块出错只让自身卡片显示占位，",
     "symbol" : "renderCard"
   }, {
     "id" : "script_render_ciphers_end",
-    "line" : 686,
+    "line" : 179,
     "desc" : "",
     "symbol" : "updateSmartDetection"
   }, {
     "id" : "script_smart_detect",
-    "line" : 688,
-    "desc" : "半智能识别：把文本与已加载的词典交给 SmartDetect 渲染栏目；异常只记录日志，不影响其它卡片",
+    "line" : 181,
+    "desc" : "半智能识别：把文本与已加载的词典交给 SmartDetectRender 渲染栏目；异常只记录日志，不影响其它卡片",
     "symbol" : "updateSmartDetection"
   }, {
     "id" : "script_smart_detect_end",
-    "line" : 701,
+    "line" : 193,
     "desc" : "",
     "symbol" : "updateTranslateBar"
   }, {
     "id" : "script_translate",
-    "line" : 703,
+    "line" : 195,
     "desc" : "翻译跳转条：当前输入成词/词组时，在文本输入区显示跳转百度翻译的小按钮；判定或渲染异常时静默隐藏",
     "symbol" : "updateTranslateBar"
   }, {
     "id" : "script_translate_end",
-    "line" : 728,
+    "line" : 219,
     "desc" : "",
-    "symbol" : "countDictWords"
+    "symbol" : "applySmartWordDict"
   }, {
     "id" : "script_word_dict",
-    "line" : 731,
-    "desc" : "按需加载词典（供「A1Z26 分段匹配」与翻译跳转的成词判定使用），按可靠性逐级回退：",
-    "symbol" : "countDictWords"
+    "line" : 221,
+    "desc" : "词典加载：委托 WordDict 按「分层词表 → 整部词表 → 内置词种子」逐级回退；就绪后重算智能识别与翻译跳转条",
+    "symbol" : "applySmartWordDict"
   }, {
     "id" : "script_word_dict_end",
-    "line" : 810,
+    "line" : 242,
     "desc" : "",
     "symbol" : "onInputChange"
   }, {
     "id" : "script_input_events",
-    "line" : 813,
+    "line" : 244,
     "desc" : "文本输入事件：更新字符计数与清空，触发全部密码刷新、半智能识别与翻译跳转条（不设长度上限）",
     "symbol" : "onInputChange"
   }, {
     "id" : "script_input_events_end",
-    "line" : 836,
+    "line" : 266,
     "desc" : ""
   }, {
     "id" : "script_init",
-    "line" : 838,
-    "desc" : "初始化：默认文本模式、生成猪圈字形按钮、按需加载词典、刷新各输入区，并延迟载入示例 \"HELLO\""
+    "line" : 268,
+    "desc" : "初始化：登记三种特殊输入控制器、默认文本模式、按需加载词典，并延迟载入示例 \"HELLO\""
   }, {
     "id" : "script_init_end",
-    "line" : 864,
+    "line" : 293,
     "desc" : ""
   } ],
   "style.css" : [ {
@@ -1431,125 +1534,125 @@
     "id" : "css_cards_end",
     "line" : 1061,
     "desc" : "",
-    "symbol" : ".braille-unicode-row"
+    "symbol" : ".braille-cards-row"
   }, {
     "id" : "css_braille_view",
     "line" : 1063,
-    "desc" : "盲文输出卡片样式",
-    "symbol" : ".braille-unicode-row"
+    "desc" : "盲文输出卡片样式：紧凑网格排列的「盲文字符 + 字母标签」，不重复绘制点阵以省空间",
+    "symbol" : ".braille-cards-row"
   }, {
     "id" : "css_braille_view_end",
-    "line" : 1136,
+    "line" : 1104,
     "desc" : "",
     "symbol" : ".a1z26-code-row"
   }, {
     "id" : "css_a1z26_view",
-    "line" : 1138,
+    "line" : 1106,
     "desc" : "A1Z26 输出卡片样式",
     "symbol" : ".a1z26-code-row"
   }, {
     "id" : "css_a1z26_view_end",
-    "line" : 1187,
+    "line" : 1155,
     "desc" : "",
     "symbol" : ".tapcode-code-row"
   }, {
     "id" : "css_tapcode_view",
-    "line" : 1189,
+    "line" : 1157,
     "desc" : "敲击码输出卡片样式：数字对结果行 + 紧凑逐字符映射 chips",
     "symbol" : ".tapcode-code-row"
   }, {
     "id" : "css_tapcode_view_end",
-    "line" : 1249,
+    "line" : 1217,
     "desc" : "",
     "symbol" : ".semaphore-figures-row"
   }, {
     "id" : "css_semaphore_view",
-    "line" : 1251,
+    "line" : 1219,
     "desc" : "旗语输出卡片样式：紧凑网格排列的 Canvas 双臂（持旗）图，压缩卡片占比",
     "symbol" : ".semaphore-figures-row"
   }, {
     "id" : "css_semaphore_view_end",
-    "line" : 1297,
+    "line" : 1265,
     "desc" : "",
     "symbol" : ".nato-cards-row"
   }, {
     "id" : "css_nato_view",
-    "line" : 1299,
+    "line" : 1267,
     "desc" : "北约音标输出卡片样式",
     "symbol" : ".nato-cards-row"
   }, {
     "id" : "css_nato_view_end",
-    "line" : 1340,
+    "line" : 1308,
     "desc" : "",
     "symbol" : ".morse-code-row"
   }, {
     "id" : "css_morse_view",
-    "line" : 1342,
+    "line" : 1310,
     "desc" : "摩斯电码卡片样式：点划结果行 + 逐字符点划 chips",
     "symbol" : ".morse-code-row"
   }, {
     "id" : "css_morse_view_end",
-    "line" : 1398,
+    "line" : 1366,
     "desc" : "",
     "symbol" : ".pigpen-figures-row"
   }, {
     "id" : "css_pigpen_view",
-    "line" : 1400,
+    "line" : 1368,
     "desc" : "猪圈密码卡片样式：逐字符字形 SVG + 字母标签",
     "symbol" : ".pigpen-figures-row"
   }, {
     "id" : "css_pigpen_view_end",
-    "line" : 1457,
+    "line" : 1425,
     "desc" : "",
     "symbol" : ".ascii-code-row"
   }, {
     "id" : "css_ascii_view",
-    "line" : 1459,
+    "line" : 1427,
     "desc" : "ASCII 码卡片样式：十进制码值行 + 逐字符「字符 → 码值」卡片",
     "symbol" : ".ascii-code-row"
   }, {
     "id" : "css_ascii_view_end",
-    "line" : 1516,
+    "line" : 1484,
     "desc" : "",
     "symbol" : ".numeral-rows"
   }, {
     "id" : "css_numeral_view",
-    "line" : 1518,
+    "line" : 1486,
     "desc" : "进制卡片样式：每行「进制标签 + 左补零对齐后的码值」",
     "symbol" : ".numeral-rows"
   }, {
     "id" : "css_numeral_view_end",
-    "line" : 1560,
+    "line" : 1528,
     "desc" : "",
     "symbol" : ".translate-jump"
   }, {
     "id" : "css_translate",
-    "line" : 1563,
+    "line" : 1531,
     "desc" : "翻译跳转：成词/词组的输入或识别结果旁的小按钮，点击跳转百度翻译查看中文含义",
     "symbol" : ".translate-jump"
   }, {
     "id" : "css_translate_end",
-    "line" : 1612,
+    "line" : 1580,
     "desc" : "",
     "symbol" : ".site-footer"
   }, {
     "id" : "css_footer",
-    "line" : 1615,
+    "line" : 1583,
     "desc" : "页脚",
     "symbol" : ".site-footer"
   }, {
     "id" : "css_footer_end",
-    "line" : 1626,
+    "line" : 1594,
     "desc" : "",
     "symbol" : ".ciphers-grid"
   }, {
     "id" : "css_responsive",
-    "line" : 1628,
+    "line" : 1596,
     "desc" : "响应式：窄屏下网格单列、输入区纵向排列并缩小控件",
     "symbol" : ".ciphers-grid"
   }, {
     "id" : "css_responsive_end",
-    "line" : 1793,
+    "line" : 1761,
     "desc" : ""
   } ],
   "tmp/audit-static.js" : [ {
@@ -1732,8 +1835,24 @@
     "line" : 206,
     "desc" : ""
   }, {
-    "id" : "update_record_anchor",
+    "id" : "log_022",
     "line" : 209,
+    "desc" : "[本次] 盲文卡片去重复形状 + 凯撒去长度限制 + 含空格数字串按空格优先分段"
+  }, {
+    "id" : "log_022_end",
+    "line" : 217,
+    "desc" : ""
+  }, {
+    "id" : "log_023",
+    "line" : 221,
+    "desc" : "[本次] 拆分过长文件：smart-detect.js 与 script.js 按职责重构"
+  }, {
+    "id" : "log_023_end",
+    "line" : 229,
+    "desc" : ""
+  }, {
+    "id" : "update_record_anchor",
+    "line" : 232,
     "desc" : "追加区：后续新记录统一插入本锚点之前"
   } ]
 }

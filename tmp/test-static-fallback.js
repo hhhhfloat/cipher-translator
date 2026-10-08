@@ -125,7 +125,9 @@ function bundle(files) {
 const HOME_FILES = ['cipher-data.js', 'modules/braille.js', 'modules/a1z26.js', 'modules/tapcode.js',
     'modules/semaphore.js', 'modules/nato-phonetic.js', 'modules/morse.js', 'modules/pigpen.js',
     'modules/ascii.js', 'modules/numeral.js', 'modules/cantor.js', 'modules/word-finder.js',
-    'modules/word-seed.js', 'modules/translate-link.js', 'modules/smart-detect.js', 'script.js'];
+    'modules/word-seed.js', 'modules/translate-link.js', 'modules/digit-words.js', 'modules/smart-detect.js',
+    'modules/smart-detect-render.js', 'script-braille-input.js', 'script-semaphore-input.js',
+    'script-pigpen-input.js', 'script-dict.js', 'script.js'];
 const CAESAR_FILES = ['modules/word-finder.js', 'modules/word-seed.js', 'modules/translate-link.js', 'caesar.js'];
 
 // 让 Promise 链与定时器落地

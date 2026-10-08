@@ -13,7 +13,9 @@
 - `style.css`：主页表现层，按区块组织：变量与重置、模式选择器、四类专用输入区、翻译跳转条、九类输出卡片与响应式适配。
 - `cipher-data.js`：数据层，`CipherData` 集中存放盲文点阵、旗语方向对、摩斯点划表与猪圈字形映射四类数据，改数据即改规则。
 - `modules/*.js`：算法层，每个密码一个 IIFE 模块（braille / a1z26 / tapcode / semaphore / nato-phonetic / morse / pigpen / ascii / numeral）。
-- `script.js`：协调层，缓存 DOM、管理模式切换与四种输入状态，把文本分发给各模块渲染，并按需加载词典供智能识别与「成词判定」使用；各卡片渲染逐模块隔离异常。
+- `script.js`：协调层（主脚本），只保留跨输入模式共享的职责——缓存共享 DOM、维护输入模式注册表（`app`）与全局键盘按键分派、把文本分发给各密码模块渲染、驱动智能识别 / 翻译跳转 / 词典加载；各卡片渲染逐模块隔离异常。
+- `script-braille-input.js` / `script-semaphore-input.js` / `script-pigpen-input.js`：输入控制器层，分别封装三种特殊输入（盲文点阵 / 旗语九宫格 / 猪圈字形）的 DOM 与状态，经 `init(app)` 绑定事件并向主脚本登记「模式输入区 + 进入回调」与「键盘快捷键」。
+- `script-dict.js`：词典加载层（`WordDict`），按「分层词表 → 整部词表 → 内置词种子」逐级回退加载词典。
 - `resources/`：素材层，用户提供的词表/字表文本。`words-tiered.txt` 由 `20k.txt`（按使用频率排序的前 20k 英文单词）生成，按频率分层（每 5k 一档，以 `# tier=N` 标记，约 152 KB），是主页与凯撒页词典的首选来源；`yawl-all.txt` 为 YAWL 英文词表（每行一词，约 2.6 MB），作为第二候选。程序逻辑不依赖具体词表内容。
 - `caesar.html` / `caesar.css` / `caesar.js`：凯撒移位页面（原独立项目 `caesar-shift` 并入），与主页同目录，展示 ROT1~ROT25 全部移位，与主页双向导航；页面内置隐藏玩法「词典词标记」，并为命中词典词的结果行附百度翻译跳转按钮。
 
@@ -26,20 +28,22 @@
 - ASCII 与进制的 `encode` / `decode` 以「空格分隔的码值串」为中间形态；进制的 `encode(text, base)` / `decode(encoded, base)` 可指定进制（默认十六进制）。
 - 猪圈模块的字形键是 `encode` / `decode` 的中间形态（九宫格 `g` + 行 + 列、叉形 `x-` + 区域名 top / left / right / bottom，加点追加 `d`，如 `g00`、`x-top`、`x-topd`）；`glyphGeometry(letter, size)` 返回 `{ lines, dot }` 纯几何，卡片与输入按钮共用同一套字形。
 - `modules/cantor.js`：映射工具层，把 `1234` 的 24 种排列按升序映射到 `A`–`X`（康托展开），供智能识别调用。
-- `modules/smart-detect.js`：启发式识别层，分析文本输入（摩斯 / 二进制 / 三进制 / 十六进制 / A1Z26 / 敲击码 / ASCII / 康托展开 / 进制转换 / 无空格数字串的词典词递归分段）并在文本输入块内渲染可切换栏目；摩斯点划表取自摩斯模块（即数据层 `CipherData.morse`）。
+- `modules/smart-detect.js`：启发式识别核心层（纯逻辑、无 DOM），分析文本输入（摩斯 / 二进制 / 三进制 / 十六进制 / A1Z26 / 敲击码 / ASCII / 康托展开 / 进制转换）并返回候选结果对象数组；摩斯点划表取自摩斯模块（即数据层 `CipherData.morse`）。对外只暴露 `detect(text, dict)`。
+- `modules/digit-words.js`：数字串词典分段层（纯逻辑），把「数字 → 字母（A1Z26）」整串切分为词典词（无空格整串递归分解 / 含空格按空格优先逐段分解），对外暴露 `segment(tokens, dict)` 返回「A1Z26 分段匹配」栏目对象或 `null`；供 `smart-detect.js` 调用。
+- `modules/smart-detect-render.js`：智能识别渲染层，调用 `SmartDetect.detect()` 并过滤「可解码过半」的候选、自动择优，在 `#smartDetectBody` 渲染可切换栏目；对外暴露 `render(container, text, dict)`。
 - `modules/word-finder.js`：词典工具层，把词表文本解析为词集合（支持单档与分层两种解析），并在文本中按「最左最长」匹配出词与字符区间；纯逻辑、与 DOM 无关，供凯撒页隐藏玩法、主页智能识别的分段成词检测与成词判定使用。
 - `modules/word-seed.js`：降级词表层，内置约 1400 个高频词（由 `words-tiered.txt` 第 1 档生成，含全部 2–3 字母短词），仅在两级词表 `fetch` 都失败（静态托管缺资源、`file://` 打开等）时启用，保证分段成词与成词判定不至于整体失效。
-- `modules/translate-link.js`：跳转工具层，判定英文文本是否「成词/词组」（优先词典校验，词典不可用时按字母启发式回退）并生成跳转百度翻译的小按钮；供凯撒页结果行、主页文本输入与识别结果复用。
-- `modules/translate-link.js` 的 `require` 仅用于 Node 自测导出，裹在 `try/catch` 中，浏览器不生效。
+- `modules/translate-link.js`：跳转工具层，判定英文文本是否「成词/词组」（优先词典校验，词典不可用时按字母启发式回退）并生成跳转百度翻译的小按钮；供凯撒页结果行、主页文本输入与识别结果复用。其 `require` 仅用于 Node 自测导出，裹在 `try/catch` 中，浏览器不生效。
 
-- 智能识别流：文本 → `updateSmartDetection()` → `SmartDetect.detect()` 判定 → `render()` 过滤「可解码过半」的候选、自动选中「译出字母最多」的一项，在 `#smartDetectBody` 渲染栏目（多候选以并列小按钮切换，栏内视图同样以按钮切换）。
+- 智能识别流：文本 → `updateSmartDetection()` → `SmartDetectRender.render()` → `SmartDetect.detect()` 判定 → 过滤「可解码过半」的候选、自动选中「译出字母最多」的一项，在 `#smartDetectBody` 渲染栏目（多候选以并列小按钮切换，栏内视图同样以按钮切换）；数字串的词典分段由 `DigitWords.segment()` 追加「A1Z26 分段匹配」栏目。
 - 词典标记流：凯撒页输入文本 → `renderResults()` 逐 ROT 移位调用 `WordFinder.findWords()` → 命中词高亮、命中行置顶。
-- 词典加载流（三级回退）：主页 `loadSmartWordDict()` / 凯撒页 `loadWordDict()` 按可靠性逐级尝试 `resources/words-tiered.txt`（分层解析）→ `resources/yawl-all.txt`（单档）→ 内置词种子 `WordSeed`；任一成功即为生效词典，并在就绪后重算当前输入的智能识别与翻译跳转条（凯撒页重渲染结果表）。全部失败（连种子也缺失）才静默降级（不显示分段栏目 / 关闭词标记）。请求词表一律用 `cache: 'no-cache'` 重新校验；`smart-detect` 首次用到词典时按词典对象缓存「可分词集合 + 词前缀集合 + 最长词长度」供分段递归剪枝。
-- 翻译跳转流：凯撒页 `renderResults()`（命中词典词的行）、主页 `updateTranslateBar()`（文本输入）与 `SmartDetect.renderItem()`（识别结果）分别调用 `TranslateLink.isWordPhrase()`；判定成词/词组时用 `createButton()` 生成指向 `https://fanyi.baidu.com/mtpe-individual/transText?query=<文本>&lang=en2zh` 的链接。
-- 猪圈输入流：`buildPigpenButtons()` 按 `PigpenCipher` 的字形数据生成四组按钮（九宫格 A–I / 加点九宫格 J–R / 叉形 S–V / 加点叉形 W–Z） → 点击字形把对应字母追加到 `pigpenAccumulatedText`（另有空格 / 退格）→ 「添加到文本」经 `appendToTextInput()` 写入文本框并派发 `input`，复用唯一渲染入口。
-- 猪圈按钮排版流：`buildPigpenButtons()` 把四组按钮容器统一设为 3×3 网格；九宫格组按钮按字母顺序（行优先）自然落位，叉形组按钮按 `spec.pos` 经 `PIGPEN_CROSS_SLOTS` 指定 `grid-row` / `grid-column`（上 / 左 / 右 / 下摆成十字，中心与四角留空）。
-- 特殊输入键盘流：`script_keyboard_shortcuts` 以**捕获阶段**在 `document` 上监听 `keydown`，按 `currentMode` 分派——盲文 / 旗语模式把空格映射为「把当前字母添加到文本」，猪圈模式把空格映射为加空格、退格映射为删末位；只在事件目标是「可编辑控件」（非只读的 `input` / `textarea` / `select` 或 `contenteditable`）时放行，其余情况（含只读的结果框、聚焦的按钮）照常响应快捷键并 `preventDefault`。
+- 词典加载流（三级回退）：主页 `script.js` 的 `loadSmartWordDict()` / 凯撒页 `loadWordDict()` 委托 `WordDict.load()` 按可靠性逐级尝试 `resources/words-tiered.txt`（分层解析）→ `resources/yawl-all.txt`（单档）→ 内置词种子 `WordSeed`；任一成功即为生效词典，并在就绪后重算当前输入的智能识别与翻译跳转条（凯撒页重渲染结果表）。全部失败（连种子也缺失）才静默降级（不显示分段栏目 / 关闭词标记）。请求词表一律用 `cache: 'no-cache'` 重新校验；`DigitWords` 首次用到词典时按词典对象缓存「可分词集合 + 词前缀集合 + 最长词长度」供分段递归剪枝。
+- 翻译跳转流：凯撒页 `renderResults()`（命中词典词的行）、主页 `updateTranslateBar()`（文本输入）与 `SmartDetectRender.renderItem()`（识别结果）分别调用 `TranslateLink.isWordPhrase()`；判定成词/词组时用 `createButton()` 生成指向 `https://fanyi.baidu.com/mtpe-individual/transText?query=<文本>&lang=en2zh` 的链接。
+- 猪圈输入流：`script-pigpen-input.js` 的 `buildButtons()` 按 `PigpenCipher` 的字形数据生成四组按钮（九宫格 A–I / 加点九宫格 J–R / 叉形 S–V / 加点叉形 W–Z） → 点击字形把对应字母追加到累积文本（另有空格 / 退格）→ 「添加到文本」经 `app.appendToTextInput()` 写入文本框并派发 `input`，复用唯一渲染入口。
+- 猪圈按钮排版流：`script-pigpen-input.js` 把四组按钮容器统一设为 3×3 网格；九宫格组按钮按字母顺序（行优先）自然落位，叉形组按钮按 `spec.pos` 经 `CROSS_SLOTS` 指定 `grid-row` / `grid-column`（上 / 左 / 右 / 下摆成十字，中心与四角留空）。
+- 特殊输入键盘流：`script.js` 的 `script_keyboard_shortcuts` 以**捕获阶段**在 `document` 上监听 `keydown`，跳过可编辑控件后按 `currentMode` 把空格 / 退格分派给对应输入控制器登记在 `app.shortcuts` 的回调（盲文 / 旗语模式空格 = 把当前字母添加到文本，猪圈模式空格 = 加空格、退格 = 删末位），各回调自行 `preventDefault`。
 - 卡片渲染隔离流：`updateAllCiphers()` 逐模块调用 `renderCard()`，单个模块抛错时只把该卡片写成占位提示并继续渲染后续卡片，避免「一个模块出错导致其余卡片空白」。
+
 
 <!-- @anchor: proj_arch_end -->
 
@@ -57,7 +61,7 @@
 - **短词只取最高频档**：长度 ≤ 3 的短词（2/3 字母）组合极多、最易产生噪声，故仅从前 5k（第 1 档）中检索；≥4 字母的词不受档位限制。阈值以常量 `SHORT_WORD_MAX_LEN` / `SHORT_WORD_TIERS` 表达，便于调整。
 - **无空格长数字串的词典分段（递归取词）**：当输入是一整串长度 > 5 的纯数字且无空格时，从头部寻找「能译成词典词」的子串并取走，递归分解剩余部分；以词典最长词作为单个词的枚举长度上限，并用「词前缀集合」剪枝抑制组合爆炸。结果可能为多解（如 `91419945` → `INSIDE`（单段）与 `IN SIDE`（`in` + `side`）），按「段数少 → 来源档位更靠前（更常用） → 字母更多」排序。
 - **识别结果自动择优 + 并列按钮**：`detect()` 返回全部候选后，先滤掉「可解码 token 占比 ≤ 1/2」的噪声候选，再自动选中「译出字母最多」的一项作为默认显示；多个候选以并列小按钮（非下拉框）切换，便于一眼看到最强信号。
-- **识别规则与渲染解耦**：`SmartDetect.detect()` 只做纯判定并返回结果对象数组，`SmartDetect.render()` 负责过滤、择优与构建按钮与栏目 DOM；新增识别规则只需扩展 `detect()`。栏目可声明 `views` 数组以获得栏内视图切换（进制转换、A1Z26 分段多解均用此呈现）。
+- **识别规则与渲染解耦**：`SmartDetect.detect()` 只做纯判定并返回结果对象数组，`SmartDetectRender.render()` 负责过滤、择优与构建按钮与栏目 DOM；新增识别规则只需扩展 `detect()`。栏目可声明 `views` 数组以获得栏内视图切换（进制转换、A1Z26 分段多解均用此呈现）。
 - **进制转换强调位数对齐**：二进制 / 三进制视图把所有值左补零到统一宽度，避免不同长度混排；转换结果用等宽字体呈现便于逐位对齐阅读。
 - **敲击码只留紧凑映射**：输出卡片去除大体积的 5×5 方格预览，改为一行「字母 → 行,列」紧凑 chips，兼顾可读性与空间占用。
 - **旗语只画双臂 + 卡片紧凑化**：Canvas 不再绘制人物头部（圆形）与身体（竖线），只画两条持旗手臂，让信号形状成为视觉主体；画布由 72×72 缩至 54×54，输出卡片改用紧凑网格（列宽 58px、`gap` 4px、内边距 2px、标签缩小）排列，显著压缩卡片占比。
@@ -93,20 +97,33 @@
 - **键盘快捷键改为捕获阶段并按「是否可编辑」放行**：原先只在目标是 `input` / `textarea` / `select` 时跳过，导致焦点落在**只读结果框**（各特殊输入模式的翻译结果框是 `readonly`）时按空格既不确认也不 `preventDefault`，浏览器便把它当成「翻页 / 滚动」——这正是「空格确认与空格翻页冲突」的根因。现改为捕获阶段监听 + 只读控件与聚焦按钮照常响应快捷键，空格既确认字母又不会滚动页面；真正可编辑的控件仍完全放行。
 - **翻译结果不截断**：旗语 / ASCII / 摩斯 / 猪圈 / 进制五类输出卡片一律完整渲染全部字符，移除此前的 16 / 24 / 40 字符上限与「…(+N个字符)」省略提示，避免长输入时信息丢失；空间占用改由「缩小画布 / 缩小字形 + 紧凑网格排版 + 卡片内滚动」来控制，做到既省空间又不丢内容。
 
+
+- **盲文输出卡片去掉重复形状**：盲文 Unicode 字符本身即点阵形状，故卡片不再并列渲染一份 3×2 点阵图，改为单行紧凑网格（每个字符 = 盲文字符 + 小号字母标签），既省空间又不丢「字母 ↔ 字形」对照信息。
+- **含空格数字串以空格为优先词边界**：A1Z26 分段（词典成词）在输入含空格时，先按空格切分，再对每段各自递归分解成词典词并拼成词组（如 `85121215 91419945` → `HELLO INSIDE`）；空格是硬边界，不跨空格合并。全为短数字段（无长度 ≥ 3 的段）时不触发，避免与已可解的 A1Z26 输入重复。
+
+
+- **过长文件按职责拆分**：`smart-detect.js` 与 `script.js` 体量偏大，按职责拆分为多个单职责文件——识别核心（`smart-detect.js`，纯判定）、识别渲染（`smart-detect-render.js`，DOM）、数字串词典分段（`digit-words.js`，纯逻辑）、三个输入控制器（`script-braille-input.js` / `script-semaphore-input.js` / `script-pigpen-input.js`）与词典加载器（`script-dict.js`）。拆分以「纯逻辑与 DOM 分离」「按输入模式分离」为界，各文件保持 IIFE + 全局命名空间 + Node 导出守卫的既有约定；`script.js` 因此收敛为协调层。特殊输入控制器统一暴露 `init(app)`，主脚本用 `app` 注册表（模式输入区 + 进入回调、键盘快捷键）按 `currentMode` 分派，新增输入模式只需新增一个 `*-input.js` 并 `init(app)`；识别三件套之间用「浏览器读全局 / Node 按相对路径 require」的延迟取用方式解耦。
+
+
 <!-- @anchor: proj_decisions_end -->
 
 <!-- @anchor: proj_conventions -->
-- 文件命名固定：主页三件套 `index.html` / `style.css` / `script.js` + 数据 `cipher-data.js` + `modules/` 下每密码一文件；凯撒页面为同级三件套 `caesar.html` / `caesar.css` / `caesar.js`。
-- 锚点命名：`模块_功能`（如 `braille_encode`、`script_mode_switch`、`caesar_shift_char`），每个文件首个锚点为 `<页面/文件>_intro`（如主页 `index_intro`、脚本 `script_intro`、凯撒页 `caesar_md_intro` / `caesar_script_intro`）；功能块用 `xxx` / `xxx_end` 成对包裹，锚点行下一行写职责注释。
+- 文件命名固定：主页三件套 `index.html` / `style.css` / `script.js` + 数据 `cipher-data.js` + `modules/` 下每密码一文件；特殊输入控制器为根目录 `script-<mode>-input.js`（braille / semaphore / pigpen）、词典加载器为 `script-dict.js`；凯撒页面为同级三件套 `caesar.html` / `caesar.css` / `caesar.js`。
+- 锚点命名：`模块_功能`（如 `braille_encode`、`script_mode_switch`、`caesar_shift_char`），每个文件首个锚点为 `<页面/文件>_intro`（如主页 `index_intro`、脚本 `script_intro`、输入控制器 `script_braille_input_intro`、凯撒页 `caesar_md_intro` / `caesar_script_intro`）；功能块用 `xxx` / `xxx_end` 成对包裹，锚点行下一行写职责注释。
 - 密码模块一律用 IIFE 包裹并返回 `{ encode, decode, render }`，不向全局泄露内部函数；映射数据一律放 `cipher-data.js`。
 - 所有渲染先 `container.innerHTML = ''` 再重建，空输入统一显示 `.placeholder` 占位；主脚本逐模块调用并隔离异常（`renderCard()` 的 try/catch），保证单卡片失败不影响其它卡片。
 - 页面间一律使用同目录相对链接（不使用上级目录跳转），保持零构建、双击可用的约束。
 - 文本输入不设长度上限；`index.html` 不设 `maxlength`，`script.js` 仅更新「N 字符」计数、不做截断。
 - 用户可见文案中空格用 `␣`、旗语空格用 `·` 表示，保持各卡片视觉一致。
 - 对外跳转链接统一以新窗口打开并带 `rel="noopener noreferrer"`。
-- `modules/` 含九个密码模块（braille / a1z26 / tapcode / semaphore / nato-phonetic / morse / pigpen / ascii / numeral）与五个工具模块（映射 `cantor.js`、启发式识别 `smart-detect.js`、词典 `word-finder.js`、降级词表 `word-seed.js`、跳转 `translate-link.js`）；`smart-detect.js` 为纯判定 + 渲染，不接入卡片渲染循环，由 `script.js` 的 `updateSmartDetection()` 单独驱动；`word-finder.js` 被主页智能识别（数字串分段成词）、凯撒页隐藏玩法与 `translate-link.js`（成词判定）引用；`word-seed.js` 仅作为词典加载失败时的回退来源。
-- 主页脚本加载顺序：`cipher-data.js` → 九个密码模块（braille / a1z26 / tapcode / semaphore / nato-phonetic / morse / pigpen / ascii / numeral）→ `cantor.js` → `word-finder.js` → `word-seed.js` → `translate-link.js` → `smart-detect.js` → `script.js`；凯撒页为 `word-finder.js` → `word-seed.js` → `translate-link.js` → `caesar.js`。主脚本必须排在最后，`script.js` / `caesar.js` 依赖前序全局符号（如 `smart-detect` 依赖 `cipher-data` 与 `morse`），顺序不可打乱；改动加载顺序后应跑 `tmp/audit-static.js` 复核。
+- `modules/` 含九个密码模块（braille / a1z26 / tapcode / semaphore / nato-phonetic / morse / pigpen / ascii / numeral）与工具模块：映射 `cantor.js`、数字串词典分段 `digit-words.js`、启发式识别核心 `smart-detect.js`、识别渲染 `smart-detect-render.js`、词典 `word-finder.js`、降级词表 `word-seed.js`、跳转 `translate-link.js`。识别的「判定」与「渲染」拆分为两文件（`smart-detect.js` 纯判定、`smart-detect-render.js` 负责 DOM），密码模块之外的工具均不接入卡片渲染循环，由 `script.js` 单独驱动。`word-finder.js` 被凯撒页隐藏玩法、`translate-link.js`（成词判定）与 `digit-words.js`（数字串分段）引用；`word-seed.js` 仅作为词典加载失败时的回退来源。
+- 特殊输入控制器（`script-braille-input.js` / `script-semaphore-input.js` / `script-pigpen-input.js`）统一暴露 `init(app)`：内部持有自身 DOM 引用与状态，经 `app.registerMode(mode, section, onEnter)` 登记模式输入区与进入回调、经 `app.registerShortcut(mode, handler)` 登记键盘快捷键；主脚本只按 `currentMode` 分派显隐与按键，不再直接持有各输入状态。跨文件依赖用「浏览器读全局 / Node 按相对路径 require」的延迟取用方式解耦（`digit-words` / `smart-detect` / `smart-detect-render` 之间如此），`require` 一律裹在 `try/catch` 中（仅供 Node 自测）。
+- 主页脚本加载顺序：`cipher-data.js` → 九个密码模块（braille / a1z26 / tapcode / semaphore / nato-phonetic / morse / pigpen / ascii / numeral）→ `cantor.js` → `word-finder.js` → `word-seed.js` → `translate-link.js` → `digit-words.js` → `smart-detect.js` → `smart-detect-render.js` → 输入控制器（`script-braille-input.js` / `script-semaphore-input.js` / `script-pigpen-input.js`）→ `script-dict.js` → `script.js`；凯撒页为 `word-finder.js` → `word-seed.js` → `translate-link.js` → `caesar.js`。主脚本必须排在最后，`script.js` / `caesar.js` 依赖前序全局符号（如 `smart-detect-render.js` 依赖 `smart-detect.js`，`script.js` 依赖各输入控制器与 `WordDict`），顺序不可打乱；改动加载顺序后应跑 `tmp/audit-static.js` 复核。
 - 词典类资源一律经 `fetch` 读取并以 `cache: 'no-cache'` 请求（不用 `force-cache`，避免静态托管更新资源后浏览器长期返回旧副本），且必须保留「分层词表 → 整部词表 → 内置词种子」的回退链。
+
+
+- 凯撒页与主页一致：输入不设长度上限（`caesar.html` 无 `maxlength`；`caesar.js` 只更新「N 字符」计数、不做截断）。
+
 
 <!-- @anchor: proj_conventions_end -->
 
@@ -133,6 +150,11 @@
 - 进制转换的二进制视图有「五位（A1Z26）」与「七位（ASCII）」两种（取代此前笼统的「二进制 / 7 位 ASCII」表述）：两者的结果行都是对齐后的二进制数字，译出的字母 / 字符放在附注行：前者对超出 1–26 的值显示 `?`，后者对非可打印值（< 32 或 > 126）显示 `?`；三进制视图按各值转换后的最长位数对齐。栏目默认选中的二进制视图按「译出字符更多」推断，值域混排时可能不是想要的那种，需手动切换。
 
 - GitHub Pages 的 HTML / JS / CSS 由 CDN 缓存约 10 分钟：刚发布新版本时页面可能仍是旧脚本（表现为「功能没生效 / 卡片不对」），等缓存过期或强制刷新（Ctrl+F5）即可；词表本身已用 `no-cache` 请求，不受此影响。若需彻底避免，可在 `<script src="…">` 后加版本查询串（如 `script.js?v=20`）后再发布。
+
+
+- 盲文输出卡片为单行紧凑网格（每个字符 = 盲文字符 + 字母标签），不再重复绘制 3×2 点阵，形状由盲文字符本身呈现；长输入会渲染较多字符卡片，属换取「不截断」的代价。
+- A1Z26 分段除「无空格整串」外，还支持「含空格」的数字输入：以空格为优先词边界，逐段各自递归分解后拼成词组；任一空格段无法完全切成词典词则整串放弃；全为 A1Z26 可解短数字段（无长度 ≥ 3 的段）时不触发。含空格输入的段间 chips 以 `/` 分隔。
+- 凯撒移位页不设输入长度上限；长输入会渲染 25 行较长的结果行，渲染开销随输入长度增长。
 
 <!-- @anchor: proj_limits_end -->
 

@@ -319,26 +319,20 @@
     // @anchor: caesar_render_end
 
     // @anchor: caesar_input_handler
-    // 输入处理：更新字符计数（含 60 上限）并刷新结果；清空复位
+    // 输入处理：更新字符计数（不设长度上限）并刷新结果；清空复位
     function onInputChange() {
         var value = textInput.value;
-        var len = value.length;
-        charCount.textContent = len + ' / 60';
-
-        if (len > 60) {
-            textInput.value = value.slice(0, 60);
-            charCount.textContent = '60 / 60';
-        }
-
-        renderResults(textInput.value);
+        charCount.textContent = value.length + ' 字符';
+        renderResults(value);
     }
 
     function onClear() {
         textInput.value = '';
-        charCount.textContent = '0 / 60';
+        charCount.textContent = '0 字符';
         renderResults('');
         textInput.focus();
     }
+
     // @anchor: caesar_input_handler_end
 
     // @anchor: caesar_event_bindings
@@ -368,10 +362,11 @@
     setTimeout(function () {
         if (textInput.value === '') {
             textInput.value = 'HELLO';
-            charCount.textContent = '5 / 60';
+            charCount.textContent = '5 字符';
             renderResults('HELLO');
         }
     }, 300);
+
     // @anchor: caesar_init_end
 
 })();

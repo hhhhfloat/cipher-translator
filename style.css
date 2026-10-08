@@ -1061,68 +1061,33 @@ body {
 /* @anchor: css_cards_end */
 
 /* @anchor: css_braille_view */
-/* 盲文输出卡片样式 */
-/* ============================================
-   盲文样式
-   ============================================ */
-.braille-unicode-row {
-    display: flex;
-    flex-wrap: wrap;
+/* 盲文输出卡片样式：紧凑网格排列的「盲文字符 + 字母标签」，不重复绘制点阵以省空间 */
+.braille-cards-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, 40px);
     gap: 6px;
-    margin-bottom: 18px;
+    align-items: end;
 }
 
-.braille-char {
-    font-size: 2rem;
-    line-height: 1;
-    color: #4a3a5c;
-    background: #f6f2fa;
-    border-radius: 6px;
-    padding: 4px 8px;
-    min-width: 44px;
-    text-align: center;
-}
-
-.braille-dots-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    align-items: flex-end;
-}
-
-.braille-dot-cell {
+.braille-card {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 6px;
+    gap: 2px;
 }
 
-.braille-dot-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: 1fr 1fr 1fr;
-    gap: 4px;
-    padding: 6px;
-    background: #faf8f5;
-    border-radius: 8px;
-    border: 1px solid #e8e2d6;
-}
-
-.braille-dot {
-    width: 14px;
-    height: 14px;
-    border-radius: 50%;
-    background: #ddd8cf;
-    transition: background 0.2s;
-}
-
-.braille-dot.active {
-    background: #5b3e7a;
-    box-shadow: inset 0 1px 2px rgba(0,0,0,0.2);
+.braille-glyph {
+    font-size: 1.7rem;
+    line-height: 1.15;
+    color: #4a3a5c;
+    background: #f6f2fa;
+    border-radius: 6px;
+    width: 100%;
+    text-align: center;
 }
 
 .braille-letter-label {
-    font-size: 0.75rem;
+    font-size: 0.68rem;
     color: var(--text-muted);
     font-weight: 600;
 }
@@ -1131,8 +1096,11 @@ body {
 .braille-unknown {
     font-size: 0.85rem;
     color: #bbb;
-    padding: 10px 6px;
+    padding: 14px 0;
+    width: 100%;
+    text-align: center;
 }
+
 /* @anchor: css_braille_view_end */
 
 /* @anchor: css_a1z26_view */

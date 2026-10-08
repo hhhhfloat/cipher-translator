@@ -99,7 +99,9 @@ function modeBtn(mode) {
 const order = ['cipher-data.js', 'modules/braille.js', 'modules/a1z26.js', 'modules/tapcode.js',
     'modules/semaphore.js', 'modules/nato-phonetic.js', 'modules/morse.js', 'modules/pigpen.js',
     'modules/ascii.js', 'modules/numeral.js', 'modules/cantor.js', 'modules/word-finder.js',
-    'modules/translate-link.js', 'modules/smart-detect.js', 'script.js'];
+    'modules/translate-link.js', 'modules/digit-words.js', 'modules/smart-detect.js',
+    'modules/smart-detect-render.js', 'script-braille-input.js', 'script-semaphore-input.js',
+    'script-pigpen-input.js', 'script-dict.js', 'script.js'];
 const src = order.map(function (f) { return fs.readFileSync(path.join(__dirname, '..', f), 'utf8'); }).join('\n;\n');
 
 const timers = [];
@@ -139,6 +141,10 @@ function findClass(root, cls) {
 try {
     vm.runInContext(src, sandbox, { filename: 'bundle.js' });
     ok(vm.runInContext('typeof SmartDetect', sandbox) === 'object', 'SmartDetect 在当前脚本作用域中可用');
+    ok(vm.runInContext('typeof SmartDetectRender', sandbox) === 'object', 'SmartDetectRender 在当前脚本作用域中可用');
+    ok(vm.runInContext('typeof DigitWords', sandbox) === 'object', 'DigitWords 在当前脚本作用域中可用');
+    ok(vm.runInContext('typeof WordDict', sandbox) === 'object', 'WordDict 在当前脚本作用域中可用');
+    ok(vm.runInContext('typeof BrailleInput', sandbox) === 'object', 'BrailleInput 在当前脚本作用域中可用');
     ok(vm.runInContext('typeof TranslateLink', sandbox) === 'object', 'TranslateLink 在当前脚本作用域中可用');
     ok(vm.runInContext('typeof MorseCipher', sandbox) === 'object', 'MorseCipher 在当前脚本作用域中可用');
     ok(vm.runInContext('typeof PigpenCipher', sandbox) === 'object', 'PigpenCipher 在当前脚本作用域中可用');

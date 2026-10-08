@@ -52,6 +52,7 @@ global.TapCodeCipher = require(path.join(base, 'tapcode.js'));
 const WordFinder = global.WordFinder;
 const TranslateLink = global.TranslateLink;
 const SmartDetect = require(path.join(base, 'smart-detect.js'));
+const SmartDetectRender = require(path.join(base, 'smart-detect-render.js'));
 
 // 真实分层词典
 const dictText = fs.readFileSync(path.join(__dirname, '..', 'resources', 'words-tiered.txt'), 'utf8');
@@ -105,7 +106,7 @@ eq(holder2.children.length, 1, '容器含 1 个按钮');
 
 // ===== 4. 智能识别栏目内翻译按钮 =====
 let c = new El('div');
-SmartDetect.render(c, '.... . .-.. .-.. ---', dict);   // 摩斯 → HELLO
+SmartDetectRender.render(c, '.... . .-.. .-.. ---', dict);   // 摩斯 → HELLO
 let action = findByClass(c, 'smart-item-action');
 let jump = action && findByClass(action, 'translate-jump');
 ok(!!jump, '摩斯识别结果 HELLO 旁出现翻译按钮');
@@ -113,19 +114,19 @@ ok(jump && jump.href.indexOf('query=HELLO') !== -1, '摩斯翻译按钮指向 HE
 eq(findByClass(c, 'smart-item-result')._text, 'HELLO', '摩斯结果 = HELLO');
 
 c = new El('div');
-SmartDetect.render(c, '65 66 67', dict);               // ASCII → ABC（非词）
+SmartDetectRender.render(c, '65 66 67', dict);               // ASCII → ABC（非词）
 action = findByClass(c, 'smart-item-action');
 ok(!!action && action.children.length === 0, 'ASCII 结果 ABC 不放翻译按钮');
 
 c = new El('div');
-SmartDetect.render(c, '91419945', dict);               // 分段 → INSIDE
+SmartDetectRender.render(c, '91419945', dict);               // 分段 → INSIDE
 action = findByClass(c, 'smart-item-action');
 jump = action && findByClass(action, 'translate-jump');
 ok(!!jump && jump.href.indexOf('query=INSIDE') !== -1, '分段匹配结果 INSIDE 旁出现翻译按钮');
 
 // 无词典（仅启发式）时，HELLO 仍给按钮
 c = new El('div');
-SmartDetect.render(c, '.... . .-.. .-.. ---', null);
+SmartDetectRender.render(c, '.... . .-.. .-.. ---', null);
 action = findByClass(c, 'smart-item-action');
 jump = action && findByClass(action, 'translate-jump');
 ok(!!jump, '无词典时按启发式仍给出翻译按钮');

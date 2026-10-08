@@ -21,7 +21,7 @@
 
     <main class="main-content">
         <!-- @anchor: caesar_input -->
-        <!-- 输入区域：60 字符上限的英文文本输入与清空按钮 -->
+<!-- 输入区域：英文文本输入（不设长度上限）与清空按钮 -->
         <section class="input-section">
             <div class="input-wrapper">
                 <label for="textInput" class="input-label">输入英文文本</label>
@@ -31,14 +31,14 @@
                         id="textInput"
                         class="text-input"
                         placeholder="例如：HELLO WORLD"
-                        maxlength="60"
                     >
                     <button id="clearBtn" class="clear-btn" title="清空">✕</button>
                 </div>
-                <span id="charCount" class="char-count">0 / 60</span>
+                <span id="charCount" class="char-count">0 字符</span>
             </div>
             <p class="input-hint">支持 A-Z 字母，自动展示全部 25 种移位（ROT1 ~ ROT25）</p>
         </section>
+
         <!-- @anchor: caesar_input_end -->
 
         <!-- @anchor: caesar_results -->

@@ -8,6 +8,7 @@ global.CantorCipher = require(path.join(base, 'cantor.js'));
 global.TapCodeCipher = require(path.join(base, 'tapcode.js'));
 const WordFinder = require(path.join(base, 'word-finder.js'));
 const SmartDetect = require(path.join(base, 'smart-detect.js'));
+const SmartDetectRender = require(path.join(base, 'smart-detect-render.js'));
 
 // 真实分层词典（供「A1Z26 分段匹配」用例）：每 5k 词一档，短词只取最高频档
 const dictText = fs.readFileSync(path.join(__dirname, '..', 'resources', 'words-tiered.txt'), 'utf8');
@@ -153,16 +154,16 @@ ok(Array.isArray(r), '全 1 长串返回数组且不抛错');
 
 // ===== 8. 渲染：过滤 + 自动选中 + 并列按钮 =====
 let c = new El('div');
-SmartDetect.render(c, 'HELLO');
+SmartDetectRender.render(c, 'HELLO');
 ok(findExact(c, 'smart-placeholder') !== null, '无匹配渲染占位提示');
 
 c = new El('div');
-SmartDetect.render(c, '1234');
+SmartDetectRender.render(c, '1234');
 eq(findExact(c, 'smart-tabs'), null, '单项时不渲染切换按钮');
 eq(findOneByClass(c, 'smart-item-result')._text, 'A', '康托单项结果 = A');
 
 c = new El('div');
-SmartDetect.render(c, '8 5 12 12 15');
+SmartDetectRender.render(c, '8 5 12 12 15');
 let tabs = findExact(c, 'smart-tabs');
 ok(tabs !== null, '多项时渲染并列按钮');
 eq(tabs.children.length, 2, '按钮含 2 个候选');
@@ -171,7 +172,7 @@ ok(tabs.children[0].classList.contains('is-active'), '自动选中 A1Z26（字�
 eq(findOneByClass(c, 'smart-item-result')._text, 'HELLO', '默认展示 A1Z26 结果');
 
 c = new El('div');
-SmartDetect.render(c, '65 66 67');
+SmartDetectRender.render(c, '65 66 67');
 tabs = findExact(c, 'smart-tabs');
 ok(tabs !== null && tabs.children.length === 2, '65 66 67 → ASCII + 进制转换');
 eq(tabs.children[0]._text, 'ASCII 码转换', 'A1Z26 全为 ? 被过滤，仅剩 ASCII/进制');
@@ -179,11 +180,11 @@ ok(tabs.children[0].classList.contains('is-active'), '自动选中 ASCII');
 eq(findOneByClass(c, 'smart-item-result')._text, 'ABC', 'ASCII 结果 = ABC');
 
 c = new El('div');
-SmartDetect.render(c, '8 99');
+SmartDetectRender.render(c, '8 99');
 eq(findExact(c, 'smart-tabs'), null, 'A1Z26 恰好半数可解码 → 被过滤，仅剩进制转换');
 
 c = new El('div');
-SmartDetect.render(c, '85121215', dict);
+SmartDetectRender.render(c, '85121215', dict);
 tabs = findExact(c, 'smart-tabs');
 eq(tabs.children[0]._text, 'A1Z26 分段匹配', '分段匹配置于候选首位');
 ok(tabs.children[0].classList.contains('is-active'), '自动选中分段匹配（字母最多）');
@@ -191,7 +192,7 @@ eq(findOneByClass(c, 'smart-item-result')._text, 'HELLO', '分段匹配默认结
 
 // 多解：栏内视图切换（INSIDE / IN SIDE）
 c = new El('div');
-SmartDetect.render(c, '91419945', dict);
+SmartDetectRender.render(c, '91419945', dict);
 const viewTabs = findExact(c, 'smart-tabs smart-view-tabs');
 ok(viewTabs !== null, '多解时渲染栏内视图按钮');
 ok(viewTabs && viewTabs.children.length >= 2, '视图按钮 ≥ 2（INSIDE / IN SIDE）');
@@ -203,7 +204,7 @@ eq(findOneByClass(c, 'smart-item-result')._text, 'IN SIDE', '点击后展示 IN 
 
 // 顶层按钮点击切换 → 进制转换（栏内含 5 位 / 7 位 / 三进制三个视图按钮）
 c = new El('div');
-SmartDetect.render(c, '8 5 12 12 15');
+SmartDetectRender.render(c, '8 5 12 12 15');
 tabs = findExact(c, 'smart-tabs');
 tabs.children[1].click();
 ok(tabs.children[1].classList.contains('is-active') && !tabs.children[0].classList.contains('is-active'), '点击后按钮激活态切换');

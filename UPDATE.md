@@ -206,5 +206,28 @@
 <!-- @anchor: log_021_end -->
 
 
+<!-- @anchor: log_022 -->
+# [本次] 盲文卡片去重复形状 + 凯撒去长度限制 + 含空格数字串按空格优先分段
+- **需求**：① 盲文翻译结果栏目缩减空间、去除重复的形状展示；② 凯撒移位不限制输入长度；③ 有意义词语拆分优先按照输入的空格。
+- **盲文输出卡片（`modules/braille.js` 的 `braille_render` 区块 + `style.css` 的 `css_braille_view`）**：原先并列渲染「盲文 Unicode 行」与「3×2 点阵行」两份相同形状，现去掉点阵行，改为单行紧凑网格 `braille-cards-row`——每个字符一张卡片，内容为盲文字符（形状本身）+ 小号字母标签；空格仍以 `␣` 占位。删除废弃的点阵样式，新增 `.braille-card / .braille-glyph / .braille-letter-label`。
+- **凯撒页去长度限制（`caesar.js` 的 `caesar_input_handler` / `caesar_init` + `caesar.html`）**：删除 60 字符上限与截断逻辑，计数改为「N 字符」（初始 `0 字符`），`caesar.html` 移除 `maxlength="60"`，与主页口径一致。
+- **含空格数字串按空格优先分段（`modules/smart-detect.js` 的 `smart_detect_digitwords` / `smart_detect_detect`）**：把单串数字的核心递归抽出为 `decomposeDigits()`；`findDigitWords()`（无空格、长度 > 5）保持原行为，新增 `findDigitPhrase()`——输入含空格时以空格为优先词边界，逐段各自分解（任一段无法成词则整串放弃；无长度 ≥ 3 的段时不触发，避免与 A1Z26 重复），`buildDigitPhrase()` 用各段多解的笛卡尔积（上限 12）生成词组视图（如 `85121215 91419945` → `HELLO INSIDE` / `HELLO IN SIDE`），段间 chips 以 `/` 分隔。
+- **自测**：新增 `tmp/test-spaced-segment.js`（13 断言）、`tmp/test-braille-caesar.js`（17 断言，含盲文卡片结构 + 凯撒 80 字符不截断 + `caesar.html` 无 `maxlength`）；`check-syntax`（17 文件）、`test-smart-detect`(90)、`test-tiered-words`(23)、`test-integration`(86)、`test-no-truncation`(16)、`test-new-ciphers`(116)、`test-translate-link`(36)、`test-static-fallback`(19)、`check-css`、`audit-static` 全绿；锚点索引重建（374）。
+- **文档**：`PROJECT.md` 关键决策 / 约定 / 已知限制补充对应条目；`UPDATE.md` 追加本记录；删除临时 `TODO.md`。
+<!-- @anchor: log_022_end -->
+
+
+
+<!-- @anchor: log_023 -->
+# [本次] 拆分过长文件：smart-detect.js 与 script.js 按职责重构
+- **需求**：`modules/smart-detect.js` 与 `script.js` 过长，需要重构拆分。
+- **智能识别拆分（`modules/`）**：`smart-detect.js` 只保留解析 / 判定 / 结果构造（对外 `detect(text, dict)`）；新增 `digit-words.js`（`DigitWords.segment`，数字串词典分段：分层上下文 + 递归分解 + 栏目构造）与 `smart-detect-render.js`（`SmartDetectRender.render`，过滤「可解码过半」+ 自动择优 + 栏目渲染）；三者以「浏览器读全局 / Node 按相对路径 require」的延迟取用方式解耦。
+- **主脚本拆分（根目录）**：`script.js` 收敛为协调层（共享 DOM、`app` 注册表 + 模式切换、全局键盘按键分派、各卡片渲染驱动、智能识别 / 翻译跳转 / 词典加载驱动、初始化）；新增 `script-braille-input.js` / `script-semaphore-input.js` / `script-pigpen-input.js`（三个输入控制器，各以 `init(app)` 绑定 DOM 并登记模式区与快捷键回调）与 `script-dict.js`（`WordDict.load` 词典三级回退加载器）。原 `script_output_textbox` / `script_*_input` 等区块随各自的输入控制器迁出。
+- **加载顺序（`index.html`）**：`… word-finder.js → word-seed.js → translate-link.js → digit-words.js → smart-detect.js → smart-detect-render.js → script-braille-input.js → script-semaphore-input.js → script-pigpen-input.js → script-dict.js → script.js`。
+- **自测**：`check-syntax`（23 文件）、`test-smart-detect`(90)、`test-integration`(90，含新全局与输入控制器断言)、`test-static-fallback`(19)、`test-translate-link`(36)、`test-tiered-words`(23)、`test-spaced-segment`(13)、`test-new-ciphers`(116)、`test-braille-caesar`(17)、`test-no-truncation`(16)、`check-css`、`audit-static`（0 问题）全绿；锚点索引重建（398）。
+- **文档**：`PROJECT.md` 架构 / 约定 / 关键决策同步；`UPDATE.md` 追加本记录；删除临时 `TODO.md`。
+<!-- @anchor: log_023_end -->
+
+
 <!-- @anchor: update_record_anchor -->
 <!-- 追加区：后续新记录统一插入本锚点之前 -->

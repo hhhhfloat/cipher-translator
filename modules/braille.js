@@ -72,7 +72,7 @@ const BrailleCipher = (() => {
     // @anchor: braille_getDots_end
 
     // @anchor: braille_render
-    // 在容器中渲染盲文可视化：Unicode 行 + 3×2 点阵行
+    // 在容器中渲染盲文：每个字符一张紧凑卡片（盲文字符 + 字母标签），不再重复绘制点阵
     function render(container, text) {
         container.innerHTML = '';
         const upperText = text.toUpperCase();
@@ -83,68 +83,42 @@ const BrailleCipher = (() => {
             return;
         }
 
-        // 编码行：显示盲文Unicode字符
-        const brailleLine = document.createElement('div');
-        brailleLine.className = 'braille-unicode-row';
-        const encoded = encode(upperText);
-        for (const ch of encoded) {
-            const span = document.createElement('span');
-            span.className = 'braille-char';
-            span.textContent = ch;
-            brailleLine.appendChild(span);
-        }
-        container.appendChild(brailleLine);
-
-        // 点阵可视化行
-        const dotsRow = document.createElement('div');
-        dotsRow.className = 'braille-dots-row';
+        // 单行紧凑网格：每个字符 = 一个盲文字符（形状本身）+ 字母标签
+        const row = document.createElement('div');
+        row.className = 'braille-cards-row';
 
         for (const ch of upperText) {
-            const wrapper = document.createElement('div');
-            wrapper.className = 'braille-dot-cell';
+            const card = document.createElement('div');
+            card.className = 'braille-card';
 
-            const dots = getDots(ch);
-            if (dots) {
-                // 3行×2列的点阵
-                const grid = document.createElement('div');
-                grid.className = 'braille-dot-grid';
-
-                // 布局: [dot1, dot4; dot2, dot5; dot3, dot6]
-                const layout = [
-                    [dots[0], dots[3]],  // row 0: dot1, dot4
-                    [dots[1], dots[4]],  // row 1: dot2, dot5
-                    [dots[2], dots[5]]   // row 2: dot3, dot6
-                ];
-
-                for (const row of layout) {
-                    for (const active of row) {
-                        const dot = document.createElement('span');
-                        dot.className = 'braille-dot' + (active ? ' active' : '');
-                        grid.appendChild(dot);
-                    }
-                }
-                wrapper.appendChild(grid);
+            if (CipherData.braille[ch]) {
+                const glyph = document.createElement('span');
+                glyph.className = 'braille-glyph';
+                glyph.textContent = encode(ch);  // 复用编码得到该字母的盲文 Unicode 字符
+                card.appendChild(glyph);
 
                 const label = document.createElement('span');
                 label.className = 'braille-letter-label';
                 label.textContent = ch;
-                wrapper.appendChild(label);
+                card.appendChild(label);
             } else if (ch === ' ') {
                 const spaceMarker = document.createElement('span');
                 spaceMarker.className = 'braille-space-marker';
                 spaceMarker.textContent = '␣';
-                wrapper.appendChild(spaceMarker);
+                card.appendChild(spaceMarker);
             } else {
                 const unknown = document.createElement('span');
                 unknown.className = 'braille-unknown';
                 unknown.textContent = ch;
-                wrapper.appendChild(unknown);
+                card.appendChild(unknown);
             }
 
-            dotsRow.appendChild(wrapper);
+            row.appendChild(card);
         }
-        container.appendChild(dotsRow);
+
+        container.appendChild(row);
     }
+
     // @anchor: braille_render_end
 
     return { encode, decode, getDots, render };
